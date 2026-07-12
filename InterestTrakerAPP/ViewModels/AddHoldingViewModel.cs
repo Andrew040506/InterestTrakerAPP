@@ -5,10 +5,14 @@ using InterestTrakerAPP.Services;
 
 namespace InterestTrakerAPP.ViewModels;
 
+// These tell MAUI to automatically fill these properties when navigating from the Explorer
+[QueryProperty(nameof(Symbol), "Symbol")]
+[QueryProperty(nameof(Name), "Name")]
+[QueryProperty(nameof(AssetClass), "AssetClass")]
 public partial class AddHoldingViewModel : ObservableObject
 {
     private readonly DatabaseService _databaseService;
-    private readonly MarketApiService _apiService; // ADDED to check live prices
+    private readonly MarketApiService _apiService;
 
     [ObservableProperty] private string _symbol = string.Empty;
     [ObservableProperty] private string _name = string.Empty;
@@ -17,12 +21,12 @@ public partial class AddHoldingViewModel : ObservableObject
     [ObservableProperty] private decimal _units;
     [ObservableProperty] private decimal _pricePerUnit;
 
-    // UPDATED Constructor to include the API Service
     public AddHoldingViewModel(DatabaseService databaseService, MarketApiService apiService)
     {
         _databaseService = databaseService;
         _apiService = apiService;
     }
+
 
     [RelayCommand]
     private async Task SubmitTradeAsync()

@@ -18,7 +18,7 @@
                     <SearchBar x:Name="AssetSearchBar"
                                Grid.Column="0" 
                                Text="{Binding SearchSymbolText}"
-                               Placeholder="Search assets (e.g. TSLA, BINANCE:ETHUSDT)..."
+                               Placeholder="Search assets (e.g. TSLA, BINANCE:BTCUSDT)..."
                                BackgroundColor="Transparent"
                                CancelButtonColor="#76777d"
                                TextColor="#000000"
@@ -88,6 +88,12 @@
                                     BackgroundColor="#ffffff"
                                     Margin="0,0,0,12"
                                     Padding="16">
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MarketWatchViewModel}}, Path=NavigateToTradeCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
 
                                 <Border.Shadow>
                                     <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />

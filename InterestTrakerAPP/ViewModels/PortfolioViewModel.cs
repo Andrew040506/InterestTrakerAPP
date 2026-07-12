@@ -81,6 +81,22 @@ public partial class PortfolioViewModel : ObservableObject
         });
     }
 
+    [RelayCommand]
+    private async Task NavigateToTradeAsync(PortfolioItem asset)
+    {
+        if (asset == null) return;
+
+        // Package the existing asset's data to send to the Trade Desk
+        var navigationParameters = new Dictionary<string, object>
+        {
+            { "Symbol", asset.Symbol },
+            { "Name", asset.Name },
+            { "AssetClass", asset.AssetClass }
+        };
+
+        await Shell.Current.GoToAsync("AddHoldingPage", navigationParameters);
+    }
+
     // Swipe-to-Delete functionality is kept here!
     [RelayCommand]
     private async Task DeleteHoldingAsync(PortfolioItem item)

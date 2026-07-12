@@ -125,6 +125,24 @@ public partial class MarketWatchViewModel : ObservableObject
         RefreshVisibleWatchlist();
     }
 
+
+    [RelayCommand]
+    private async Task NavigateToTradeAsync(AssetQuote asset)
+    {
+        if (asset == null) return;
+
+        // Navigate to the AddHoldingPage and pass the asset details as query parameters
+        var navigationParameters = new Dictionary<string, object>
+    {
+        { "Symbol", asset.Symbol },
+        { "Name", asset.Symbol }, // Using Symbol as a fallback name
+        { "AssetClass", asset.AssetClass }
+    };
+
+        await Shell.Current.GoToAsync("AddHoldingPage", navigationParameters);
+    }
+
+
     [RelayCommand]
     private void SetFilter(string category)
     {
