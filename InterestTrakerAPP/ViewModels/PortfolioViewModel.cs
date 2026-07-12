@@ -25,12 +25,11 @@ public partial class PortfolioViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayCashBalance))]
-    private decimal _cashBalance = 85400.00m;
+    private decimal _cashBalance = 0.00m;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayRealizedPnL))]
-    private decimal _realizedPnL = 24100.00m;
-
+    private decimal _realizedPnL = 0.00m;
     public string DisplayTotalValue => $"₱{TotalPortfolioValue:N2}";
     public string DisplayUnrealizedPnL => $"{(TotalUnrealizedPnL >= 0 ? "+" : "")}₱{TotalUnrealizedPnL:N2}";
     public string DisplayCashBalance => $"₱{CashBalance:N2}";

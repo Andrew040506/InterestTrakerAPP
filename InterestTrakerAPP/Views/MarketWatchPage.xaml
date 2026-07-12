@@ -11,16 +11,9 @@
     <Grid RowDefinitions="Auto, Auto, *" Padding="20">
 
         <VerticalStackLayout Grid.Row="0" Spacing="16" Margin="0,0,0,16">
-            <Label Text="WealthShield" 
-                   FontAttributes="Bold" 
-                   FontSize="24" 
-                   TextColor="#000000" />
+            <Label Text="WealthShield" FontAttributes="Bold" FontSize="24" TextColor="#000000" />
 
-            <Border Stroke="#c6c6cd" 
-                    StrokeThickness="1" 
-                    StrokeShape="RoundRectangle 12"
-                    BackgroundColor="#f6f3f5"
-                    Padding="4">
+            <Border Stroke="#c6c6cd" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#f6f3f5" Padding="4">
                 <Grid ColumnDefinitions="*, Auto">
                     <SearchBar x:Name="AssetSearchBar"
                                Grid.Column="0" 
@@ -45,7 +38,6 @@
 
             <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
                 <HorizontalStackLayout Spacing="12">
-
                     <Border BackgroundColor="#131b2e" StrokeShape="RoundRectangle 6" Padding="16,8">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding SetFilterCommand}" CommandParameter="All"/>
@@ -66,7 +58,6 @@
                         </Border.GestureRecognizers>
                         <Label Text="Stocks" TextColor="#45464d" FontSize="12" FontAttributes="Bold"/>
                     </Border>
-
                 </HorizontalStackLayout>
             </ScrollView>
         </VerticalStackLayout>
@@ -76,72 +67,53 @@
             <Label Grid.Column="1" Text="Live Data via Finnhub" FontSize="12" TextColor="#006c49" VerticalOptions="End"/>
         </Grid>
 
-        <RefreshView Grid.Row="2" 
-                     IsRefreshing="{Binding IsRefreshing}" 
-                     Command="{Binding LoadPricesCommand}">
-
+        <RefreshView Grid.Row="2" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadPricesCommand}">
             <CollectionView ItemsSource="{Binding Watchlist}" SelectionMode="None">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:AssetQuote">
-                        <Border Stroke="#e4e2e4" 
-                                StrokeThickness="1" 
-                                StrokeShape="RoundRectangle 12"
-                                BackgroundColor="#ffffff"
-                                Margin="0,0,0,12"
-                                Padding="16">
 
-                            <Border.Shadow>
-                                <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />
-                            </Border.Shadow>
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Delete" 
+                                               BackgroundColor="#ba1a1a" 
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MarketWatchViewModel}}, Path=DeleteAssetCommand}" 
+                                               CommandParameter="{Binding .}"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
 
-                            <Grid ColumnDefinitions="Auto, *, Auto">
+                            <Border Stroke="#e4e2e4" 
+                                    StrokeThickness="1" 
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="#ffffff"
+                                    Margin="0,0,0,12"
+                                    Padding="16">
 
-                                <Border Grid.Column="0" 
-                                        WidthRequest="40" HeightRequest="40" 
-                                        StrokeShape="RoundRectangle 20" 
-                                        BackgroundColor="#eae7e9"
-                                        Stroke="Transparent"
-                                        Margin="0,0,12,0"
-                                        VerticalOptions="Center">
-                                    <Label Text="{Binding Symbol}" 
-                                           HorizontalOptions="Center" 
-                                           VerticalOptions="Center"
-                                           TextColor="#131b2e"
-                                           FontSize="10"
-                                           FontAttributes="Bold"/>
-                                </Border>
+                                <Border.Shadow>
+                                    <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />
+                                </Border.Shadow>
 
-                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                                    <Label Text="{Binding Symbol}" 
-                                           FontSize="16" 
-                                           FontAttributes="Bold" 
-                                           TextColor="#000000"/>
-                                    <Label Text="{Binding AssetClass}" 
-                                           FontSize="12" 
-                                           TextColor="#45464d"/>
-                                </VerticalStackLayout>
+                                <Grid ColumnDefinitions="Auto, *, Auto">
 
-                                <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End" Spacing="2">
-
-                                    <Label Text="{Binding DisplayPricePhp}" 
-                                           FontSize="16" 
-                                           FontAttributes="Bold" 
-                                           TextColor="#000000"
-                                           HorizontalOptions="End"/>
-
-                                    <Label Text="{Binding DisplayPriceUsd}" 
-                                           FontSize="12" 
-                                           TextColor="#76777d"
-                                           HorizontalOptions="End"/>
-
-                                    <Border BackgroundColor="#e6fbd4" Stroke="Transparent" StrokeShape="RoundRectangle 4" Padding="6,2" HorizontalOptions="End" Margin="0,4,0,0">
-                                        <Label Text="LIVE" FontSize="10" TextColor="#006c49" FontAttributes="Bold"/>
+                                    <Border Grid.Column="0" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20" BackgroundColor="#eae7e9" Stroke="Transparent" Margin="0,0,12,0" VerticalOptions="Center">
+                                        <Label Text="{Binding Symbol}" HorizontalOptions="Center" VerticalOptions="Center" TextColor="#131b2e" FontSize="10" FontAttributes="Bold"/>
                                     </Border>
 
-                                </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                        <Label Text="{Binding Symbol}" FontSize="16" FontAttributes="Bold" TextColor="#000000"/>
+                                        <Label Text="{Binding AssetClass}" FontSize="12" TextColor="#45464d"/>
+                                    </VerticalStackLayout>
 
-                            </Grid>
-                        </Border>
+                                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End" Spacing="2">
+                                        <Label Text="{Binding DisplayPricePhp}" FontSize="16" FontAttributes="Bold" TextColor="#000000" HorizontalOptions="End"/>
+                                        <Label Text="{Binding DisplayPriceUsd}" FontSize="12" TextColor="#76777d" HorizontalOptions="End"/>
+                                        <Border BackgroundColor="#e6fbd4" Stroke="Transparent" StrokeShape="RoundRectangle 4" Padding="6,2" HorizontalOptions="End" Margin="0,4,0,0">
+                                            <Label Text="LIVE" FontSize="10" TextColor="#006c49" FontAttributes="Bold"/>
+                                        </Border>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </SwipeView>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>

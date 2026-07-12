@@ -24,6 +24,8 @@ public static class MauiProgram
         builder.Services.AddTransient<MarketWatchPage>();
         builder.Services.AddTransient<PortfolioViewModel>();
         builder.Services.AddTransient<PortfolioPage>();
+        builder.Services.AddTransient<AddHoldingViewModel>();
+        builder.Services.AddTransient<AddHoldingPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

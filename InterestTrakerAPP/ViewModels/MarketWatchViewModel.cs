@@ -9,10 +9,14 @@ namespace InterestTrakerAPP.ViewModels;
 public partial class MarketWatchViewModel : ObservableObject
 {
     private readonly MarketApiService _apiService;
+    private readonly DatabaseService _databaseService;
     private decimal _livePhpRate = 1m;
 
-    // Holds ALL assets in the background
+    // The background brain
     private readonly List<AssetQuote> _masterWatchlist = new();
+
+    // Tracks which tab is currently selected so refreshes don't break the UI
+    private string _activeFilter = "All";
 
     [ObservableProperty]
     private bool _isRefreshing;
@@ -22,21 +26,12 @@ public partial class MarketWatchViewModel : ObservableObject
 
     public ObservableCollection<AssetQuote> Watchlist { get; } = new();
 
-    public MarketWatchViewModel(MarketApiService apiService)
+    public MarketWatchViewModel(MarketApiService apiService, DatabaseService databaseService)
     {
         _apiService = apiService;
-
-        AddAssetToMasterList("AAPL", "Stocks");
-        AddAssetToMasterList("BINANCE:BTCUSDT", "Crypto");
+        _databaseService = databaseService;
 
         _ = LoadPricesAsync();
-    }
-
-    private void AddAssetToMasterList(string symbol, string assetClass)
-    {
-        var asset = new AssetQuote { Symbol = symbol, AssetClass = assetClass };
-        _masterWatchlist.Add(asset);
-        Watchlist.Add(asset);
     }
 
     [RelayCommand]
@@ -44,6 +39,15 @@ public partial class MarketWatchViewModel : ObservableObject
     {
         IsRefreshing = true;
 
+        // 1. Load permanent assets from SQLite database immediately
+        var localAssets = await _databaseService.GetWatchlistAsync();
+        _masterWatchlist.Clear();
+        _masterWatchlist.AddRange(localAssets);
+
+        // Update UI immediately so it's not blank while loading prices
+        RefreshVisibleWatchlist();
+
+        // 2. Fetch live prices
         _livePhpRate = await _apiService.GetUsdToPhpRateAsync();
 
         foreach (var asset in _masterWatchlist)
@@ -56,6 +60,7 @@ public partial class MarketWatchViewModel : ObservableObject
             }
         }
 
+        // 3. Refresh UI again with the new prices
         RefreshVisibleWatchlist();
         IsRefreshing = false;
     }
@@ -77,10 +82,14 @@ public partial class MarketWatchViewModel : ObservableObject
             CurrentPhpRate = _livePhpRate
         };
 
-        _masterWatchlist.Add(newAsset);
-        Watchlist.Add(newAsset);
-        SearchSymbolText = string.Empty;
+        // Save to Database permanently
+        await _databaseService.SaveWatchlistAssetAsync(newAsset);
 
+        _masterWatchlist.Add(newAsset);
+        SearchSymbolText = string.Empty;
+        RefreshVisibleWatchlist();
+
+        // Fetch live price immediately for the new asset
         var price = await _apiService.GetLivePriceAsync(cleanSymbol);
         if (price.HasValue)
         {
@@ -89,27 +98,41 @@ public partial class MarketWatchViewModel : ObservableObject
         }
     }
 
+    // NEW: Swipe-to-Delete functionality
+    [RelayCommand]
+    private async Task DeleteAssetAsync(AssetQuote item)
+    {
+        if (item == null) return;
+
+        // Delete from Database
+        await _databaseService.DeleteWatchlistAssetAsync(item);
+
+        // Remove from Master List and UI
+        _masterWatchlist.Remove(item);
+        RefreshVisibleWatchlist();
+    }
+
     [RelayCommand]
     private void SetFilter(string category)
     {
-        Watchlist.Clear();
-        var filteredList = category == "All"
-            ? _masterWatchlist
-            : _masterWatchlist.Where(a => a.AssetClass == category);
-
-        foreach (var item in filteredList)
-        {
-            Watchlist.Add(item);
-        }
+        _activeFilter = category;
+        RefreshVisibleWatchlist();
     }
 
+    // This method now respects the active filter!
     private void RefreshVisibleWatchlist()
     {
-        var currentItems = new List<AssetQuote>(Watchlist);
-        Watchlist.Clear();
-        foreach (var item in currentItems)
+        MainThread.BeginInvokeOnMainThread(() =>
         {
-            Watchlist.Add(item);
-        }
+            Watchlist.Clear();
+            var filteredList = _activeFilter == "All"
+                ? _masterWatchlist
+                : _masterWatchlist.Where(a => a.AssetClass == _activeFilter);
+
+            foreach (var item in filteredList)
+            {
+                Watchlist.Add(item);
+            }
+        });
     }
 }

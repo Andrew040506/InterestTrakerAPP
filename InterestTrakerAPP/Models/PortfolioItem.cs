@@ -39,4 +39,5 @@ public partial class PortfolioItem : ObservableObject
     [Ignore] public string DisplayHoldings => $"{TotalUnits:N4} units";
     [Ignore] public string DisplayPnL => $"{(IsProfitable ? "+" : "")}₱{UnrealizedPnL:N2} ({PnLPercentage:N1}%)";
     [Ignore] public string AvgCostDisplay => $"Avg: ₱{AverageBuyPrice:N2}";
+    [Ignore] public string IconLetter => string.IsNullOrEmpty(Symbol) ? "" : Symbol.Substring(0, 1).ToUpper();
 }
