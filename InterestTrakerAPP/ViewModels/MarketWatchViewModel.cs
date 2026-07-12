@@ -24,7 +24,8 @@ public partial class MarketWatchViewModel : ObservableObject
         _apiService = apiService;
 
         Watchlist.Add(new AssetQuote { Symbol = "AAPL" });
-        Watchlist.Add(new AssetQuote { Symbol = "BTC-USD" });
+
+        Watchlist.Add(new AssetQuote { Symbol = "BINANCE:BTCUSDT" });
 
         _ = LoadPricesAsync();
     }

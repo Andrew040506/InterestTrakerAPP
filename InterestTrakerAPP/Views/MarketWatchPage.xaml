@@ -22,9 +22,10 @@
                     BackgroundColor="#f6f3f5"
                     Padding="4">
                 <Grid ColumnDefinitions="*, Auto">
-                    <SearchBar Grid.Column="0" 
+                    <SearchBar x:Name="AssetSearchBar"
+                               Grid.Column="0" 
                                Text="{Binding SearchSymbolText}"
-                               Placeholder="Search assets (e.g. TSLA, NVDA)..."
+                               Placeholder="Search assets (e.g. TSLA, BINANCE:ETHUSDT)..."
                                BackgroundColor="Transparent"
                                CancelButtonColor="#76777d"
                                TextColor="#000000"
