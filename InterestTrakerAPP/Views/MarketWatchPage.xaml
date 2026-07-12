@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:InterestTrakerAPP.ViewModels"
-             xmlns:models="clr-namespace:InterestTrakerAPP.Models" 
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
              x:Class="InterestTrakerAPP.Views.MarketWatchPage"
              x:DataType="viewmodels:MarketWatchViewModel"
              BackgroundColor="#fcf8fa"
@@ -45,15 +45,28 @@
 
             <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
                 <HorizontalStackLayout Spacing="12">
+
                     <Border BackgroundColor="#131b2e" StrokeShape="RoundRectangle 6" Padding="16,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SetFilterCommand}" CommandParameter="All"/>
+                        </Border.GestureRecognizers>
                         <Label Text="All Assets" TextColor="White" FontSize="12" FontAttributes="Bold"/>
                     </Border>
+
                     <Border BackgroundColor="#ffffff" Stroke="#c6c6cd" StrokeShape="RoundRectangle 6" Padding="16,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SetFilterCommand}" CommandParameter="Crypto"/>
+                        </Border.GestureRecognizers>
                         <Label Text="Crypto" TextColor="#45464d" FontSize="12" FontAttributes="Bold"/>
                     </Border>
+
                     <Border BackgroundColor="#ffffff" Stroke="#c6c6cd" StrokeShape="RoundRectangle 6" Padding="16,8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding SetFilterCommand}" CommandParameter="Stocks"/>
+                        </Border.GestureRecognizers>
                         <Label Text="Stocks" TextColor="#45464d" FontSize="12" FontAttributes="Bold"/>
                     </Border>
+
                 </HorizontalStackLayout>
             </ScrollView>
         </VerticalStackLayout>
@@ -103,20 +116,28 @@
                                            FontSize="16" 
                                            FontAttributes="Bold" 
                                            TextColor="#000000"/>
-                                    <Label Text="Tracking" 
+                                    <Label Text="{Binding AssetClass}" 
                                            FontSize="12" 
                                            TextColor="#45464d"/>
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End" Spacing="2">
-                                    <Label Text="{Binding DisplayPrice}" 
+
+                                    <Label Text="{Binding DisplayPricePhp}" 
                                            FontSize="16" 
                                            FontAttributes="Bold" 
                                            TextColor="#000000"
                                            HorizontalOptions="End"/>
-                                    <Border BackgroundColor="#e6fbd4" Stroke="Transparent" StrokeShape="RoundRectangle 4" Padding="6,2" HorizontalOptions="End">
+
+                                    <Label Text="{Binding DisplayPriceUsd}" 
+                                           FontSize="12" 
+                                           TextColor="#76777d"
+                                           HorizontalOptions="End"/>
+
+                                    <Border BackgroundColor="#e6fbd4" Stroke="Transparent" StrokeShape="RoundRectangle 4" Padding="6,2" HorizontalOptions="End" Margin="0,4,0,0">
                                         <Label Text="LIVE" FontSize="10" TextColor="#006c49" FontAttributes="Bold"/>
                                     </Border>
+
                                 </VerticalStackLayout>
 
                             </Grid>
