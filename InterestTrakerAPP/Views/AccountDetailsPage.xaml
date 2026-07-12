@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InterestTrakerAPP.ViewModels"
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
+             x:Class="InterestTrakerAPP.Views.AccountDetailsPage"
+             x:DataType="viewmodels:AccountDetailsViewModel"
+             BackgroundColor="#fcf8fa"
+             Title="{Binding AccountName}">
+
+    <Grid RowDefinitions="Auto, Auto, *" Padding="20">
+
+        <VerticalStackLayout Grid.Row="0" Margin="0,0,0,24" HorizontalOptions="Center">
+            <Label Text="CURRENT BALANCE" FontSize="12" TextColor="#76777d" FontAttributes="Bold" HorizontalOptions="Center"/>
+            <Label Text="{Binding DisplayBalance}" FontSize="40" FontAttributes="Bold" TextColor="#006c49" HorizontalOptions="Center"/>
+        </VerticalStackLayout>
+
+        <Border Grid.Row="1" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,24" Padding="16">
+            <VerticalStackLayout Spacing="12">
+                <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12">
+                    <Picker Grid.Column="0" SelectedItem="{Binding TransactionType}" BackgroundColor="#f6f3f5" WidthRequest="100">
+                        <Picker.ItemsSource>
+                            <x:Array Type="{x:Type x:String}">
+                                <x:String>Inflow</x:String>
+                                <x:String>Outflow</x:String>
+                            </x:Array>
+                        </Picker.ItemsSource>
+                    </Picker>
+                    <Entry Grid.Column="1" Placeholder="Amount (e.g. 500)" Text="{Binding Amount}" Keyboard="Numeric" BackgroundColor="#f6f3f5"/>
+                </Grid>
+                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="12">
+                    <Entry Grid.Column="0" Placeholder="Notes (e.g. Salary, Groceries)" Text="{Binding Notes}" BackgroundColor="#f6f3f5"/>
+                    <Button Grid.Column="1" Text="Save" Command="{Binding SubmitTransactionCommand}" BackgroundColor="#131b2e" TextColor="White" FontAttributes="Bold" CornerRadius="8"/>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Transactions}" SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:LedgerTransaction">
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems>
+                                <SwipeItem Text="Delete" BackgroundColor="#ba1a1a" 
+                                           Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:AccountDetailsViewModel}}, Path=DeleteTransactionCommand}" 
+                                           CommandParameter="{Binding .}"/>
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                        <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#ffffff" Margin="0,0,0,8" Padding="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                                    <Label Text="{Binding Notes}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
+                                    <Label Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy}'}" FontSize="10" TextColor="#76777d"/>
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding DisplayAmount}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Inflow">
+                                            <Setter Property="TextColor" Value="#006c49" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Outflow">
+                                            <Setter Property="TextColor" Value="#ba1a1a" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid>
+                        </Border>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

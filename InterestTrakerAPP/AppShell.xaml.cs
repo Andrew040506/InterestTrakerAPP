@@ -1,11 +1,14 @@
-﻿namespace InterestTrakerAPP
+﻿using InterestTrakerAPP.Views;
+
+namespace InterestTrakerAPP;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell()
     {
-        public AppShell()
-        {
-            InitializeComponent();
-            Routing.RegisterRoute(nameof(Views.AddHoldingPage), typeof(Views.AddHoldingPage));
-        }
+        InitializeComponent();
+
+        Routing.RegisterRoute(nameof(AddHoldingPage), typeof(AddHoldingPage));
+        Routing.RegisterRoute(nameof(AccountDetailsPage), typeof(AccountDetailsPage)); // NEW!
     }
 }

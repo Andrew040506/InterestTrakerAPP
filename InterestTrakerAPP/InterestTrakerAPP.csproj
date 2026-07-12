@@ -78,6 +78,12 @@
 	  <Compile Update="Views\AddHoldingPage.xaml.cs">
 	    <DependentUpon>AddHoldingPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\LedgerPage.xaml.cs">
+	    <DependentUpon>LedgerPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\AccountDetailsPage.xaml.cs">
+	    <DependentUpon>AccountDetailsPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\PortfolioPage.xaml.cs">
 	    <DependentUpon>PortfolioPage.xaml</DependentUpon>
 	  </Compile>
@@ -88,6 +94,12 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\AddHoldingPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\LedgerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AccountDetailsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\PortfolioPage.xaml">

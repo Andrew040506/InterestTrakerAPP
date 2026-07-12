@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
-using InterestTrakerAPP.Services;
+﻿using InterestTrakerAPP.Services;
 using InterestTrakerAPP.ViewModels;
 using InterestTrakerAPP.Views;
+using Microsoft.Extensions.Logging;
 
 namespace InterestTrakerAPP;
 
@@ -17,19 +17,28 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-        
-        builder.Services.AddSingleton<MarketApiService>();       
-        builder.Services.AddSingleton<DatabaseService>(); 
-        builder.Services.AddTransient<MarketWatchViewModel>();
-        builder.Services.AddTransient<MarketWatchPage>();
-        builder.Services.AddTransient<PortfolioViewModel>();
-        builder.Services.AddTransient<PortfolioPage>();
-        builder.Services.AddTransient<AddHoldingViewModel>();
-        builder.Services.AddTransient<AddHoldingPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
 #endif
+
+
+        builder.Services.AddSingleton<DatabaseService>();
+        builder.Services.AddSingleton<MarketApiService>();
+
+        builder.Services.AddSingleton<MarketWatchViewModel>();
+        builder.Services.AddSingleton<PortfolioViewModel>();
+        builder.Services.AddSingleton<LedgerViewModel>(); // NEW!
+
+        builder.Services.AddTransient<AddHoldingViewModel>();
+
+        builder.Services.AddSingleton<MarketWatchPage>();
+        builder.Services.AddSingleton<PortfolioPage>();
+        builder.Services.AddSingleton<LedgerPage>(); 
+
+        builder.Services.AddTransient<AddHoldingPage>();
+        builder.Services.AddTransient<AccountDetailsViewModel>();
+        builder.Services.AddTransient<AccountDetailsPage>();
 
         return builder.Build();
     }

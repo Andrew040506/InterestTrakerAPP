@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="InterestTrakerAPP.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -6,21 +6,18 @@
     xmlns:views="clr-namespace:InterestTrakerAPP.Views"
     Shell.FlyoutBehavior="Disabled">
 
-    <!-- The TabBar creates the native bottom navigation -->
     <TabBar>
-
-        <!-- Explorer Tab -->
         <Tab Title="Explorer">
             <ShellContent ContentTemplate="{DataTemplate views:MarketWatchPage}" Route="MarketWatchPage" />
         </Tab>
 
-        <!-- Portfolio Tab -->
         <Tab Title="Portfolio">
             <ShellContent ContentTemplate="{DataTemplate views:PortfolioPage}" Route="PortfolioPage" />
         </Tab>
 
-        <!-- Note: We will add the Ledger, Goals, and Tools tabs here as we create those files! -->
-
+        <Tab Title="Ledger">
+            <ShellContent ContentTemplate="{DataTemplate views:LedgerPage}" Route="LedgerPage" />
+        </Tab>
     </TabBar>
 
 </Shell>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InterestTrakerAPP.ViewModels"
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
+             x:Class="InterestTrakerAPP.Views.LedgerPage"
+             x:DataType="viewmodels:LedgerViewModel"
+             BackgroundColor="#fcf8fa"
+             Title="Cash Ledger">
+
+    <Grid RowDefinitions="Auto, Auto, *" Padding="20">
+
+        <Border Grid.Row="0" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,24" Padding="24">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,4" Radius="12" Opacity="0.05" />
+            </Border.Shadow>
+            <VerticalStackLayout>
+                <Label Text="TOTAL LIQUID CASH" FontSize="12" TextColor="#76777d" FontAttributes="Bold" Margin="0,0,0,4"/>
+                <Label Text="{Binding DisplayTotalBalance}" FontSize="36" FontAttributes="Bold" TextColor="#006c49" Margin="0,0,0,8"/>
+                <Label Text="Available across all accounts" FontSize="12" TextColor="#76777d"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*, Auto" Margin="0,0,0,16">
+            <Label Grid.Column="0" Text="Your Accounts" FontSize="20" FontAttributes="Bold" TextColor="#000000" VerticalOptions="Center"/>
+            <Button Grid.Column="1" 
+                    Text="+ Account" 
+                    Command="{Binding AddAccountCommand}"
+                    BackgroundColor="#131b2e" 
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    Padding="16,0"
+                    CornerRadius="8"
+                    HeightRequest="36"
+                    VerticalOptions="Center"/>
+        </Grid>
+
+        <RefreshView Grid.Row="2" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadAccountsCommand}">
+            <CollectionView ItemsSource="{Binding Accounts}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LedgerAccount">
+
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Delete" 
+                                               BackgroundColor="#ba1a1a" 
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:LedgerViewModel}}, Path=DeleteAccountCommand}" 
+                                               CommandParameter="{Binding .}"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,12" Padding="16">
+
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:LedgerViewModel}}, Path=NavigateToDetailsCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <Border Grid.Column="0" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 8" BackgroundColor="#e6fbd4" Stroke="Transparent" Margin="0,0,12,0" VerticalOptions="Center">
+                                        <Label Text="💳" HorizontalOptions="Center" VerticalOptions="Center" FontSize="18"/>
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                        <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" TextColor="#000000"/>
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End">
+                                        <Label Text="{Binding DisplayBalance}" FontSize="16" FontAttributes="Bold" TextColor="#000000"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

@@ -15,10 +15,12 @@ public class DatabaseService
         var databasePath = Path.Combine(FileSystem.AppDataDirectory, "WealthShield.db3");
         _database = new SQLiteAsyncConnection(databasePath);
 
-        // Ensure BOTH tables are created
         await _database.CreateTableAsync<PortfolioItem>();
         await _database.CreateTableAsync<AssetQuote>();
         await _database.CreateTableAsync<TradeTransaction>();
+
+        await _database.CreateTableAsync<LedgerAccount>();
+        await _database.CreateTableAsync<LedgerTransaction>();
     }
 
     // --- PORTFOLIO METHODS ---
@@ -101,6 +103,64 @@ public class DatabaseService
     }
 
     public async Task<int> DeleteTransactionAsync(TradeTransaction transaction)
+    {
+        await InitAsync();
+        return await _database.DeleteAsync(transaction);
+    }
+
+    // --- NEW: LEDGER & CASH METHODS ---
+
+    public async Task<List<LedgerAccount>> GetAccountsAsync()
+    {
+        await InitAsync();
+        var accounts = await _database.Table<LedgerAccount>().ToListAsync();
+
+        // Calculate the live balance for each account
+        foreach (var acc in accounts)
+        {
+            var transactions = await _database.Table<LedgerTransaction>()
+                                              .Where(t => t.AccountId == acc.Id)
+                                              .ToListAsync();
+
+            decimal inflows = transactions.Where(t => t.Type == "Inflow").Sum(t => t.Amount);
+            decimal outflows = transactions.Where(t => t.Type == "Outflow").Sum(t => t.Amount);
+            acc.CurrentBalance = inflows - outflows;
+        }
+        return accounts;
+    }
+
+    public async Task<int> SaveAccountAsync(LedgerAccount account)
+    {
+        await InitAsync();
+        if (account.Id != 0) return await _database.UpdateAsync(account);
+        else return await _database.InsertAsync(account);
+    }
+
+    public async Task<int> DeleteAccountAsync(LedgerAccount account)
+    {
+        await InitAsync();
+        // Delete the account AND all its connected transactions to prevent orphaned data
+        var transactions = await _database.Table<LedgerTransaction>().Where(t => t.AccountId == account.Id).ToListAsync();
+        foreach (var t in transactions) { await _database.DeleteAsync(t); }
+
+        return await _database.DeleteAsync(account);
+    }
+    public async Task<List<LedgerTransaction>> GetLedgerTransactionsAsync(int accountId)
+    {
+        await InitAsync();
+        return await _database.Table<LedgerTransaction>()
+                              .Where(t => t.AccountId == accountId)
+                              .OrderByDescending(t => t.Timestamp)
+                              .ToListAsync();
+    }
+
+    public async Task<int> SaveLedgerTransactionAsync(LedgerTransaction transaction)
+    {
+        await InitAsync();
+        return await _database.InsertAsync(transaction);
+    }
+
+    public async Task<int> DeleteLedgerTransactionAsync(LedgerTransaction transaction)
     {
         await InitAsync();
         return await _database.DeleteAsync(transaction);
