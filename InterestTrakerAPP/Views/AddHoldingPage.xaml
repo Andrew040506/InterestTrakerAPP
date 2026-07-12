@@ -5,15 +5,12 @@
              x:Class="InterestTrakerAPP.Views.AddHoldingPage"
              x:DataType="viewmodels:AddHoldingViewModel"
              BackgroundColor="#fcf8fa"
-             Title="Add Holding">
+             Title="Trade Desk">
 
-    <!-- ADDED: Padding="20" to keep it off the edges of your phone -->
     <ScrollView Padding="20">
-
-        <!-- CHANGED: HorizontalOptions to "Fill" so it stretches properly -->
         <VerticalStackLayout HorizontalOptions="Fill" MaximumWidthRequest="500" Margin="0,10,0,40">
 
-            <Label Text="Record New Trade" FontSize="24" FontAttributes="Bold" TextColor="#000000" Margin="0,0,0,16"/>
+            <Label Text="Execute Trade" FontSize="24" FontAttributes="Bold" TextColor="#000000" Margin="0,0,0,16"/>
 
             <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Padding="24">
                 <Border.Shadow>
@@ -23,41 +20,55 @@
                 <VerticalStackLayout Spacing="16">
 
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Asset Symbol" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
-                        <Entry Placeholder="e.g. AAPL" Text="{Binding Symbol}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
-                    </VerticalStackLayout>
-
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Asset Name" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
-                        <Entry Placeholder="e.g. Apple Inc." Text="{Binding Name}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
-                    </VerticalStackLayout>
-
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="Asset Class" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
-                        <Picker SelectedItem="{Binding AssetClass}" TextColor="#000000" BackgroundColor="#f6f3f5">
+                        <Label Text="Order Action" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                        <Picker SelectedItem="{Binding TradeType}" TextColor="#000000" BackgroundColor="#e6fbd4">
                             <Picker.ItemsSource>
                                 <x:Array Type="{x:Type x:String}">
-                                    <x:String>Stocks</x:String>
-                                    <x:String>Crypto</x:String>
+                                    <x:String>Buy</x:String>
+                                    <x:String>Sell</x:String>
                                 </x:Array>
                             </Picker.ItemsSource>
                         </Picker>
                     </VerticalStackLayout>
 
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Asset Symbol" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                        <Entry Placeholder="e.g. AAPL" Text="{Binding Symbol}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
+                    </VerticalStackLayout>
+
                     <Grid ColumnDefinitions="*, *" ColumnSpacing="16">
                         <VerticalStackLayout Grid.Column="0" Spacing="4">
-                            <Label Text="Total Units" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                            <Label Text="Asset Name" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                            <Entry Placeholder="e.g. Apple" Text="{Binding Name}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Asset Class" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                            <Picker SelectedItem="{Binding AssetClass}" TextColor="#000000" BackgroundColor="#f6f3f5">
+                                <Picker.ItemsSource>
+                                    <x:Array Type="{x:Type x:String}">
+                                        <x:String>Stocks</x:String>
+                                        <x:String>Crypto</x:String>
+                                    </x:Array>
+                                </Picker.ItemsSource>
+                            </Picker>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="16">
+                        <VerticalStackLayout Grid.Column="0" Spacing="4">
+                            <Label Text="Units to Trade" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
                             <Entry Placeholder="0.00" Keyboard="Numeric" Text="{Binding Units}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label Text="Average Cost" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
-                            <Entry Placeholder="0.00" Keyboard="Numeric" Text="{Binding AverageBuyPrice}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
+                            <Label Text="Price Per Unit" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                            <Entry Placeholder="0.00" Keyboard="Numeric" Text="{Binding PricePerUnit}" TextColor="#000000" BackgroundColor="#f6f3f5"/>
                         </VerticalStackLayout>
                     </Grid>
 
-                    <Button Text="Save Holding" 
-                            Command="{Binding SaveHoldingCommand}" 
+                    <Button Text="Submit Trade" 
+                            Command="{Binding SubmitTradeCommand}" 
                             BackgroundColor="#006c49" 
                             TextColor="White"
                             FontAttributes="Bold"

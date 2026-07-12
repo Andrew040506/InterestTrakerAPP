@@ -18,6 +18,7 @@ public class DatabaseService
         // Ensure BOTH tables are created
         await _database.CreateTableAsync<PortfolioItem>();
         await _database.CreateTableAsync<AssetQuote>();
+        await _database.CreateTableAsync<TradeTransaction>();
     }
 
     // --- PORTFOLIO METHODS ---
@@ -66,5 +67,42 @@ public class DatabaseService
     {
         await InitAsync();
         return await _database.DeleteAsync(item);
+    }
+
+    // --- NEW: TRANSACTION LEDGER METHODS ---
+
+    // Gets all trades, or filters by a specific symbol if you pass one in
+    public async Task<List<TradeTransaction>> GetTransactionsAsync(string symbol = "")
+    {
+        await InitAsync();
+
+        if (string.IsNullOrEmpty(symbol))
+        {
+            // Return all trades, newest first
+            return await _database.Table<TradeTransaction>()
+                                  .OrderByDescending(t => t.TradeDate)
+                                  .ToListAsync();
+        }
+
+        // Return trades for a specific asset
+        return await _database.Table<TradeTransaction>()
+                              .Where(t => t.Symbol == symbol)
+                              .OrderByDescending(t => t.TradeDate)
+                              .ToListAsync();
+    }
+
+    public async Task<int> SaveTransactionAsync(TradeTransaction transaction)
+    {
+        await InitAsync();
+        if (transaction.Id != 0)
+            return await _database.UpdateAsync(transaction);
+        else
+            return await _database.InsertAsync(transaction);
+    }
+
+    public async Task<int> DeleteTransactionAsync(TradeTransaction transaction)
+    {
+        await InitAsync();
+        return await _database.DeleteAsync(transaction);
     }
 }
