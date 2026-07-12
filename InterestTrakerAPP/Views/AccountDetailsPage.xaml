@@ -18,7 +18,12 @@
         <Border Grid.Row="1" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,24" Padding="16">
             <VerticalStackLayout Spacing="12">
                 <Grid ColumnDefinitions="Auto, *" ColumnSpacing="12">
-                    <Picker Grid.Column="0" SelectedItem="{Binding TransactionType}" BackgroundColor="#f6f3f5" WidthRequest="100">
+
+                    <Picker Grid.Column="0" 
+                            SelectedItem="{Binding TransactionType}" 
+                            BackgroundColor="#f6f3f5" 
+                            TextColor="#000000"
+                            WidthRequest="100">
                         <Picker.ItemsSource>
                             <x:Array Type="{x:Type x:String}">
                                 <x:String>Inflow</x:String>
@@ -26,11 +31,31 @@
                             </x:Array>
                         </Picker.ItemsSource>
                     </Picker>
-                    <Entry Grid.Column="1" Placeholder="Amount (e.g. 500)" Text="{Binding Amount}" Keyboard="Numeric" BackgroundColor="#f6f3f5"/>
+
+                    <Entry Grid.Column="1" 
+                           Placeholder="Amount (e.g. 500)" 
+                           Text="{Binding Amount}" 
+                           Keyboard="Numeric" 
+                           BackgroundColor="#f6f3f5"
+                           TextColor="#000000"
+                           PlaceholderColor="#76777d"/>
                 </Grid>
+
                 <Grid ColumnDefinitions="*, Auto" ColumnSpacing="12">
-                    <Entry Grid.Column="0" Placeholder="Notes (e.g. Salary, Groceries)" Text="{Binding Notes}" BackgroundColor="#f6f3f5"/>
-                    <Button Grid.Column="1" Text="Save" Command="{Binding SubmitTransactionCommand}" BackgroundColor="#131b2e" TextColor="White" FontAttributes="Bold" CornerRadius="8"/>
+                    <Entry Grid.Column="0" 
+                           Placeholder="Notes (e.g. Salary, Groceries)" 
+                           Text="{Binding Notes}" 
+                           BackgroundColor="#f6f3f5"
+                           TextColor="#000000"
+                           PlaceholderColor="#76777d"/>
+
+                    <Button Grid.Column="1" 
+                            Text="Save" 
+                            Command="{Binding SubmitTransactionCommand}" 
+                            BackgroundColor="#131b2e" 
+                            TextColor="White" 
+                            FontAttributes="Bold" 
+                            CornerRadius="8"/>
                 </Grid>
             </VerticalStackLayout>
         </Border>
