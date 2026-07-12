@@ -23,17 +23,8 @@ public partial class PortfolioViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsOverallProfitable))]
     private decimal _totalUnrealizedPnL;
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayCashBalance))]
-    private decimal _cashBalance = 0.00m;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayRealizedPnL))]
-    private decimal _realizedPnL = 0.00m;
     public string DisplayTotalValue => $"₱{TotalPortfolioValue:N2}";
     public string DisplayUnrealizedPnL => $"{(TotalUnrealizedPnL >= 0 ? "+" : "")}₱{TotalUnrealizedPnL:N2}";
-    public string DisplayCashBalance => $"₱{CashBalance:N2}";
-    public string DisplayRealizedPnL => $"₱{RealizedPnL:N2}";
     public bool IsOverallProfitable => TotalUnrealizedPnL >= 0;
 
     public ObservableCollection<PortfolioItem> Holdings { get; } = new();
@@ -51,10 +42,8 @@ public partial class PortfolioViewModel : ObservableObject
     {
         IsRefreshing = true;
 
-        // 1. FETCH FROM YOUR LOCAL SQLITE DATABASE
         var localHoldings = await _databaseService.GetHoldingsAsync();
 
-        // Update the UI collection safely on the Main Thread
         MainThread.BeginInvokeOnMainThread(() =>
         {
             Holdings.Clear();
@@ -64,13 +53,10 @@ public partial class PortfolioViewModel : ObservableObject
             }
         });
 
-        // 2. Fetch Live PHP Conversion Rate
         decimal phpRate = await _apiService.GetUsdToPhpRateAsync();
-
         decimal tempTotalValue = 0;
         decimal tempTotalPnL = 0;
 
-        // 3. Fetch Live Prices for Holdings and Calculate Math
         foreach (var asset in Holdings)
         {
             var liveUsdPrice = await _apiService.GetLivePriceAsync(asset.Symbol);
@@ -80,7 +66,6 @@ public partial class PortfolioViewModel : ObservableObject
             }
             else if (asset.LivePrice == 0)
             {
-                // Fallback if the API is unreachable
                 asset.LivePrice = asset.AverageBuyPrice;
             }
 
@@ -88,12 +73,24 @@ public partial class PortfolioViewModel : ObservableObject
             tempTotalPnL += asset.UnrealizedPnL;
         }
 
-        // 4. Update the Master Dashboard Numbers on the Main Thread
         MainThread.BeginInvokeOnMainThread(() =>
         {
             TotalPortfolioValue = tempTotalValue;
             TotalUnrealizedPnL = tempTotalPnL;
             IsRefreshing = false;
         });
+    }
+
+    // Swipe-to-Delete functionality is kept here!
+    [RelayCommand]
+    private async Task DeleteHoldingAsync(PortfolioItem item)
+    {
+        if (item == null) return;
+
+        await _databaseService.DeleteHoldingAsync(item);
+        Holdings.Remove(item);
+
+        // Recalculate totals
+        _ = LoadPortfolioDataAsync();
     }
 }
