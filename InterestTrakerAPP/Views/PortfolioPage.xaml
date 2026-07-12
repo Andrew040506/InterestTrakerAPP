@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InterestTrakerAPP.ViewModels"
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
+             x:Class="InterestTrakerAPP.Views.PortfolioPage"
+             x:DataType="viewmodels:PortfolioViewModel"
+             BackgroundColor="#fcf8fa"
+             Title="Portfolio">
+
+    <Grid RowDefinitions="Auto, *" Padding="20">
+
+        <VerticalStackLayout Grid.Row="0" Spacing="16" Margin="0,0,0,16">
+
+            <Border BackgroundColor="#ffffff" Stroke="#c6c6cd" StrokeShape="RoundRectangle 12" Padding="24">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />
+                </Border.Shadow>
+
+                <VerticalStackLayout Spacing="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="TOTAL PORTFOLIO VALUE" FontSize="12" TextColor="#76777d" FontAttributes="Bold" CharacterSpacing="1"/>
+                        <Label Text="{Binding DisplayTotalValue}" FontSize="36" FontAttributes="Bold" TextColor="#000000"/>
+                    </VerticalStackLayout>
+
+                    <BoxView HeightRequest="1" Color="#e4e2e4" Margin="0,8"/>
+
+                    <Grid ColumnDefinitions="*, *, *">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="Unrealized PnL" FontSize="12" TextColor="#76777d"/>
+                            <Label Text="{Binding DisplayUnrealizedPnL}" FontSize="14" FontAttributes="Bold">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsOverallProfitable}" Value="True">
+                                        <Setter Property="TextColor" Value="#006c49" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsOverallProfitable}" Value="False">
+                                        <Setter Property="TextColor" Value="#ba1a1a" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Realized PnL" FontSize="12" TextColor="#76777d"/>
+                            <Label Text="{Binding DisplayRealizedPnL}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="2">
+                            <Label Text="Cash Balance" FontSize="12" TextColor="#76777d"/>
+                            <Label Text="{Binding DisplayCashBalance}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="Holdings" FontSize="20" FontAttributes="Bold" TextColor="#000000" Margin="0,8,0,0"/>
+        </VerticalStackLayout>
+
+        <RefreshView Grid.Row="1" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadPortfolioDataCommand}">
+            <CollectionView ItemsSource="{Binding Holdings}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:PortfolioItem">
+                        <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,12" Padding="16">
+                            <Border.Shadow>
+                                <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.04" />
+                            </Border.Shadow>
+
+                            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *, Auto" RowSpacing="12">
+
+                                <Border Grid.Row="0" Grid.Column="0" WidthRequest="40" HeightRequest="40" StrokeShape="RoundRectangle 20" BackgroundColor="#131b2e" Margin="0,0,12,0">
+                                    <Label Text="{Binding Symbol[0]}" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" FontSize="16" FontAttributes="Bold"/>
+                                </Border>
+
+                                <VerticalStackLayout Grid.Row="0" Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" FontSize="16" FontAttributes="Bold" TextColor="#000000"/>
+                                    <HorizontalStackLayout Spacing="4">
+                                        <Border BackgroundColor="#f0edef" Stroke="Transparent" StrokeShape="RoundRectangle 4" Padding="4,2">
+                                            <Label Text="{Binding Symbol}" FontSize="10" TextColor="#45464d"/>
+                                        </Border>
+                                        <Label Text="{Binding AssetClass}" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="0" Grid.Column="2" VerticalOptions="Center" HorizontalOptions="End">
+                                    <Label Text="Live Price" FontSize="10" TextColor="#76777d" HorizontalOptions="End"/>
+                                    <Label Text="{Binding DisplayLivePrice}" FontSize="16" FontAttributes="Bold" TextColor="#000000" HorizontalOptions="End"/>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                                    <Label Text="Total Value" FontSize="10" TextColor="#76777d"/>
+                                    <Label Text="{Binding DisplayTotalValue}" FontSize="16" FontAttributes="Bold" TextColor="#000000"/>
+                                    <Label Text="{Binding DisplayHoldings}" FontSize="12" TextColor="#45464d"/>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1" Grid.Column="2" HorizontalOptions="End">
+                                    <Label Text="PnL / Avg Cost" FontSize="10" TextColor="#76777d" HorizontalOptions="End"/>
+                                    <Border BackgroundColor="#f0edef" Stroke="Transparent" StrokeShape="RoundRectangle 6" Padding="6,4" HorizontalOptions="End" Margin="0,2">
+                                        <Label Text="{Binding DisplayPnL}" FontSize="12" FontAttributes="Bold">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsProfitable}" Value="True">
+                                                    <Setter Property="TextColor" Value="#006c49" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsProfitable}" Value="False">
+                                                    <Setter Property="TextColor" Value="#ba1a1a" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Border>
+                                    <Label Text="{Binding AvgCostDisplay}" FontSize="12" TextColor="#45464d" HorizontalOptions="End"/>
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

@@ -6,9 +6,21 @@
     xmlns:views="clr-namespace:InterestTrakerAPP.Views"
     Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent
-        Title="Market Watch"
-        ContentTemplate="{DataTemplate views:MarketWatchPage}"
-        Route="MarketWatchPage" />
+    <!-- The TabBar creates the native bottom navigation -->
+    <TabBar>
+
+        <!-- Explorer Tab -->
+        <Tab Title="Explorer">
+            <ShellContent ContentTemplate="{DataTemplate views:MarketWatchPage}" Route="MarketWatchPage" />
+        </Tab>
+
+        <!-- Portfolio Tab -->
+        <Tab Title="Portfolio">
+            <ShellContent ContentTemplate="{DataTemplate views:PortfolioPage}" Route="PortfolioPage" />
+        </Tab>
+
+        <!-- Note: We will add the Ledger, Goals, and Tools tabs here as we create those files! -->
+
+    </TabBar>
 
 </Shell>

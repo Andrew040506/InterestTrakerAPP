@@ -17,15 +17,13 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-
-        // 1. Register API Service
-        builder.Services.AddSingleton<MarketApiService>();
-
-        // 2. Register ViewModel
+        
+        builder.Services.AddSingleton<MarketApiService>();       
+        builder.Services.AddSingleton<DatabaseService>(); 
         builder.Services.AddTransient<MarketWatchViewModel>();
-
-        // 3. Register Page (If this is missing, the app crashes on startup!)
         builder.Services.AddTransient<MarketWatchPage>();
+        builder.Services.AddTransient<PortfolioViewModel>();
+        builder.Services.AddTransient<PortfolioPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

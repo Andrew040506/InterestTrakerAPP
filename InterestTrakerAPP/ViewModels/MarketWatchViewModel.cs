@@ -20,14 +20,12 @@ public partial class MarketWatchViewModel : ObservableObject
     [ObservableProperty]
     private string _searchSymbolText = string.Empty;
 
-    // What the UI actually displays based on the active filter
     public ObservableCollection<AssetQuote> Watchlist { get; } = new();
 
     public MarketWatchViewModel(MarketApiService apiService)
     {
         _apiService = apiService;
 
-        // Setup initial default assets
         AddAssetToMasterList("AAPL", "Stocks");
         AddAssetToMasterList("BINANCE:BTCUSDT", "Crypto");
 
@@ -46,10 +44,8 @@ public partial class MarketWatchViewModel : ObservableObject
     {
         IsRefreshing = true;
 
-        // 1. Fetch the latest PHP conversion rate first
         _livePhpRate = await _apiService.GetUsdToPhpRateAsync();
 
-        // 2. Fetch prices for everything in the background
         foreach (var asset in _masterWatchlist)
         {
             var freshPrice = await _apiService.GetLivePriceAsync(asset.Symbol);
@@ -60,7 +56,6 @@ public partial class MarketWatchViewModel : ObservableObject
             }
         }
 
-        // 3. Force the UI to redraw the current visible list
         RefreshVisibleWatchlist();
         IsRefreshing = false;
     }
@@ -73,7 +68,6 @@ public partial class MarketWatchViewModel : ObservableObject
         var cleanSymbol = SearchSymbolText.Trim().ToUpper();
         if (_masterWatchlist.Any(a => a.Symbol == cleanSymbol)) return;
 
-        // Automatically categorize it based on standard crypto exchange prefixes
         string category = cleanSymbol.Contains("BINANCE:") || cleanSymbol.Contains("COINBASE:") ? "Crypto" : "Stocks";
 
         var newAsset = new AssetQuote
@@ -87,7 +81,6 @@ public partial class MarketWatchViewModel : ObservableObject
         Watchlist.Add(newAsset);
         SearchSymbolText = string.Empty;
 
-        // Fetch live price immediately
         var price = await _apiService.GetLivePriceAsync(cleanSymbol);
         if (price.HasValue)
         {
@@ -96,7 +89,6 @@ public partial class MarketWatchViewModel : ObservableObject
         }
     }
 
-    // NEW: Handle the Category Chip Clicks
     [RelayCommand]
     private void SetFilter(string category)
     {
