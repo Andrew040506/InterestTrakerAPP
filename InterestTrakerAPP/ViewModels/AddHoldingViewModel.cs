@@ -8,30 +8,57 @@ namespace InterestTrakerAPP.ViewModels;
 public partial class AddHoldingViewModel : ObservableObject
 {
     private readonly DatabaseService _databaseService;
+    private readonly MarketApiService _apiService; // ADDED to check live prices
 
     [ObservableProperty] private string _symbol = string.Empty;
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private string _assetClass = "Stocks";
-
-    // NEW: Buy or Sell toggle
     [ObservableProperty] private string _tradeType = "Buy";
-
     [ObservableProperty] private decimal _units;
     [ObservableProperty] private decimal _pricePerUnit;
 
-    public AddHoldingViewModel(DatabaseService databaseService)
+    // UPDATED Constructor to include the API Service
+    public AddHoldingViewModel(DatabaseService databaseService, MarketApiService apiService)
     {
         _databaseService = databaseService;
+        _apiService = apiService;
     }
 
     [RelayCommand]
     private async Task SubmitTradeAsync()
     {
-        if (string.IsNullOrWhiteSpace(Symbol) || Units <= 0 || PricePerUnit <= 0) return;
+        // 1. Basic empty-field validation
+        if (string.IsNullOrWhiteSpace(Symbol) || Units <= 0 || PricePerUnit <= 0)
+        {
+            await Shell.Current.DisplayAlert("Missing Info", "Please ensure all fields have valid numbers and a symbol is entered.", "OK");
+            return;
+        }
 
         var cleanSymbol = Symbol.ToUpper().Trim();
 
-        // 1. Log the receipt in our new Transaction Database
+        // 2. AUTO-CORRECT ASSET CLASS
+        // If it has a crypto exchange prefix, force it to Crypto. Otherwise, it's a Stock.
+        if (cleanSymbol.StartsWith("BINANCE:") || cleanSymbol.StartsWith("COINBASE:") || cleanSymbol.StartsWith("KRAKEN:"))
+        {
+            AssetClass = "Crypto";
+        }
+        else
+        {
+            AssetClass = "Stocks";
+        }
+
+        // 3. THE API SAFETY NET
+        var livePriceCheck = await _apiService.GetLivePriceAsync(cleanSymbol);
+
+        if (livePriceCheck == null || livePriceCheck == 0)
+        {
+            await Shell.Current.DisplayAlert("Invalid Symbol",
+                $"The API could not find live data for '{cleanSymbol}'. Please check your spelling and formatting.",
+                "OK");
+            return;
+        }
+
+        // 4. Log the receipt in our Transaction Database
         var transaction = new TradeTransaction
         {
             Symbol = cleanSymbol,
@@ -42,7 +69,7 @@ public partial class AddHoldingViewModel : ObservableObject
         };
         await _databaseService.SaveTransactionAsync(transaction);
 
-        // 2. Do the Math for the Portfolio Dashboard
+        // 5. Do the Math for the Portfolio Dashboard
         var allHoldings = await _databaseService.GetHoldingsAsync();
         var existingAsset = allHoldings.FirstOrDefault(h => h.Symbol == cleanSymbol);
 
@@ -50,7 +77,6 @@ public partial class AddHoldingViewModel : ObservableObject
         {
             if (existingAsset != null)
             {
-                // Asset exists: Calculate the new Blended Average Cost
                 decimal totalCurrentCost = existingAsset.TotalUnits * existingAsset.AverageBuyPrice;
                 decimal totalNewCost = Units * PricePerUnit;
 
@@ -61,12 +87,13 @@ public partial class AddHoldingViewModel : ObservableObject
             }
             else
             {
-                // Brand new asset
+                string finalName = string.IsNullOrWhiteSpace(Name) ? cleanSymbol : Name;
+
                 var newAsset = new PortfolioItem
                 {
                     Symbol = cleanSymbol,
-                    Name = Name,
-                    AssetClass = AssetClass,
+                    Name = finalName,
+                    AssetClass = AssetClass, // This now uses the auto-corrected version!
                     TotalUnits = Units,
                     AverageBuyPrice = PricePerUnit
                 };
@@ -81,18 +108,21 @@ public partial class AddHoldingViewModel : ObservableObject
 
                 if (existingAsset.TotalUnits <= 0)
                 {
-                    // You sold everything! Auto-delete it from the dashboard.
                     await _databaseService.DeleteHoldingAsync(existingAsset);
                 }
                 else
                 {
-                    // You still have some units left, save the updated amount.
                     await _databaseService.SaveHoldingAsync(existingAsset);
                 }
             }
+            else
+            {
+                await Shell.Current.DisplayAlert("Error", $"You do not own any {cleanSymbol} to sell.", "OK");
+                return;
+            }
         }
 
-        // 3. Return to the Dashboard
+        // 6. Return to the Dashboard
         await Shell.Current.GoToAsync("..");
     }
 }

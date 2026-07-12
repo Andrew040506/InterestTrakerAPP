@@ -71,31 +71,44 @@ public partial class MarketWatchViewModel : ObservableObject
         if (string.IsNullOrWhiteSpace(SearchSymbolText)) return;
 
         var cleanSymbol = SearchSymbolText.Trim().ToUpper();
-        if (_masterWatchlist.Any(a => a.Symbol == cleanSymbol)) return;
 
-        string category = cleanSymbol.Contains("BINANCE:") || cleanSymbol.Contains("COINBASE:") ? "Crypto" : "Stocks";
+        // 1. Prevent adding duplicates
+        if (_masterWatchlist.Any(a => a.Symbol == cleanSymbol))
+        {
+            await Shell.Current.DisplayAlert("Duplicate", $"{cleanSymbol} is already in your watchlist.", "OK");
+            return;
+        }
 
+        // 2. AUTO-CORRECT ASSET CLASS
+        string category = cleanSymbol.StartsWith("BINANCE:") || cleanSymbol.StartsWith("COINBASE:") || cleanSymbol.StartsWith("KRAKEN:")
+            ? "Crypto" : "Stocks";
+
+        // 3. THE API SAFETY NET
+        var livePriceCheck = await _apiService.GetLivePriceAsync(cleanSymbol);
+
+        if (livePriceCheck == null || livePriceCheck == 0)
+        {
+            await Shell.Current.DisplayAlert("Invalid Symbol",
+                $"The API could not find live data for '{cleanSymbol}'. Please check your spelling.",
+                "OK");
+            return;
+        }
+
+        // 4. Create the verified asset (We use the price we just fetched so it loads instantly!)
         var newAsset = new AssetQuote
         {
             Symbol = cleanSymbol,
             AssetClass = category,
+            PriceUsd = livePriceCheck.Value,
             CurrentPhpRate = _livePhpRate
         };
 
-        // Save to Database permanently
+        // 5. Save to Database permanently
         await _databaseService.SaveWatchlistAssetAsync(newAsset);
 
         _masterWatchlist.Add(newAsset);
         SearchSymbolText = string.Empty;
         RefreshVisibleWatchlist();
-
-        // Fetch live price immediately for the new asset
-        var price = await _apiService.GetLivePriceAsync(cleanSymbol);
-        if (price.HasValue)
-        {
-            newAsset.PriceUsd = price.Value;
-            RefreshVisibleWatchlist();
-        }
     }
 
     // NEW: Swipe-to-Delete functionality
