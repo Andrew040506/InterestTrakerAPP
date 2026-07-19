@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using InterestTrakerAPP.Views;
 
 namespace InterestTrakerAPP
 {
@@ -11,7 +11,7 @@ namespace InterestTrakerAPP
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new AppShell());
+            return new Window(new LoginPage());
         }
     }
 }

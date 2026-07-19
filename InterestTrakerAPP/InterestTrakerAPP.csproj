@@ -84,6 +84,15 @@
 	  <Compile Update="Views\AccountDetailsPage.xaml.cs">
 	    <DependentUpon>AccountDetailsPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\GoalsPage.xaml.cs">
+	    <DependentUpon>GoalsPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\GoalDetailsPage.xaml.cs">
+	    <DependentUpon>GoalDetailsPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\LoginPage.xaml.cs">
+	    <DependentUpon>LoginPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\PortfolioPage.xaml.cs">
 	    <DependentUpon>PortfolioPage.xaml</DependentUpon>
 	  </Compile>
@@ -100,6 +109,15 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\AccountDetailsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\GoalsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\GoalDetailsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\LoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\PortfolioPage.xaml">

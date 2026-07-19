@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="InterestTrakerAPP.Views.LoginPage"
+             Title="Secure Access">
+
+    <Grid Padding="30" VerticalOptions="Center">
+        <VerticalStackLayout Spacing="20">
+
+            <Label x:Name="HeaderLabel"
+                   Text="Welcome Back"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+            <Label x:Name="SubHeaderLabel"
+                   Text="Log in to access your ledger"
+                   FontSize="16"
+                   HorizontalOptions="Center"
+                   TextColor="Gray" />
+
+            <!-- Username Field -->
+            <Border StrokeShape="RoundRectangle 8"
+                    StrokeThickness="1"
+                    Stroke="Gray"
+                    BackgroundColor="Transparent">
+                <Entry x:Name="UsernameEntry"
+                       Placeholder="Username"
+                       Margin="10,0" />
+            </Border>
+
+            <!-- Password Field -->
+            <Border StrokeShape="RoundRectangle 8"
+                    StrokeThickness="1"
+                    Stroke="Gray"
+                    BackgroundColor="Transparent">
+                <Entry x:Name="PasswordEntry"
+                       Placeholder="Password"
+                       IsPassword="True"
+                       Margin="10,0" />
+            </Border>
+
+            <!-- Confirm Password Field (Hidden by default) -->
+            <Border x:Name="ConfirmPasswordBorder"
+                    IsVisible="False"
+                    StrokeShape="RoundRectangle 8"
+                    StrokeThickness="1"
+                    Stroke="Gray"
+                    BackgroundColor="Transparent">
+                <Entry x:Name="ConfirmPasswordEntry"
+                       Placeholder="Confirm Password"
+                       IsPassword="True"
+                       Margin="10,0" />
+            </Border>
+
+            <!-- Main Action Button -->
+            <Button x:Name="MainActionButton"
+                    Text="Login"
+                    Clicked="OnMainActionClicked"
+                    BackgroundColor="#2B0B98"
+                    TextColor="White"
+                    CornerRadius="8"
+                    FontAttributes="Bold"
+                    HeightRequest="50"
+                    Margin="0,10,0,0"/>
+
+            <!-- Mode Toggle Button -->
+            <Button x:Name="ToggleModeButton"
+                    Text="Don't have an account? Create one"
+                    Clicked="OnToggleModeClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="#2B0B98"
+                    FontAttributes="Bold"/>
+
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

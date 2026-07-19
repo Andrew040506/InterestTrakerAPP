@@ -40,6 +40,15 @@ public static class MauiProgram
         builder.Services.AddTransient<AccountDetailsViewModel>();
         builder.Services.AddTransient<AccountDetailsPage>();
 
+        builder.Services.AddSingleton<GoalsViewModel>();
+        builder.Services.AddSingleton<GoalsPage>();
+
+        builder.Services.AddTransient<GoalDetailsViewModel>();
+        builder.Services.AddTransient<GoalDetailsPage>();
+
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<LoginPage>();
+
         return builder.Build();
     }
 }

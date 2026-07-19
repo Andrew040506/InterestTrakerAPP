@@ -18,6 +18,11 @@
         <Tab Title="Ledger">
             <ShellContent ContentTemplate="{DataTemplate views:LedgerPage}" Route="LedgerPage" />
         </Tab>
+
+        <Tab Title="Goals">
+            <ShellContent ContentTemplate="{DataTemplate views:GoalsPage}" Route="GoalsPage" />
+        </Tab>
+        
     </TabBar>
 
 </Shell>
