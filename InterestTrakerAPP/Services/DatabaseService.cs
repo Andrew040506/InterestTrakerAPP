@@ -21,6 +21,9 @@ public class DatabaseService
 
         await _database.CreateTableAsync<LedgerAccount>();
         await _database.CreateTableAsync<LedgerTransaction>();
+
+        await _database.CreateTableAsync<SavingsGoal>();
+        await _database.CreateTableAsync<GoalContribution>();
     }
 
     // --- PORTFOLIO METHODS ---
@@ -165,4 +168,58 @@ public class DatabaseService
         await InitAsync();
         return await _database.DeleteAsync(transaction);
     }
+
+    public async Task<List<SavingsGoal>> GetGoalsWithAnalyticsAsync()
+    {
+        await InitAsync();
+        var goals = await _database.Table<SavingsGoal>().ToListAsync();
+
+        foreach (var goal in goals)
+        {
+            var contributions = await _database.Table<GoalContribution>()
+                                                .Where(c => c.GoalId == goal.Id)
+                                                .OrderBy(c => c.ContributionDate)
+                                                .ToListAsync();
+
+            goal.CurrentSavings = contributions.Sum(c => c.Amount);
+        }
+
+        return goals;
+    }
+
+    public async Task<int> SaveGoalAsync(SavingsGoal goal)
+    {
+        await InitAsync();
+        if (goal.Id != 0) return await _database.UpdateAsync(goal);
+        else return await _database.InsertAsync(goal);
+    }
+
+    public async Task<int> SaveContributionAsync(GoalContribution contribution)
+    {
+        await InitAsync();
+        return await _database.InsertAsync(contribution);
+    }
+
+    public async Task<List<GoalContribution>> GetContributionsForGoalAsync(int goalId)
+    {
+        await InitAsync();
+        return await _database.Table<GoalContribution>()
+                              .Where(c => c.GoalId == goalId)
+                              .OrderByDescending(c => c.ContributionDate)
+                              .ToListAsync();
+    }
+
+    public async Task<int> DeleteGoalAsync(SavingsGoal goal)
+    {
+        await InitAsync();
+
+        var contributions = await _database.Table<GoalContribution>().Where(c => c.GoalId == goal.Id).ToListAsync();
+        foreach (var c in contributions)
+        {
+            await _database.DeleteAsync(c);
+        }
+
+        return await _database.DeleteAsync(goal);
+    }
+
 }

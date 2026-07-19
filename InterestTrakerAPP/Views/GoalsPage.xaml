@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InterestTrakerAPP.ViewModels"
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
+             x:Class="InterestTrakerAPP.Views.GoalsPage"
+             x:DataType="viewmodels:GoalsViewModel"
+             BackgroundColor="#fcf8fa"
+             Title="Goal Tracker">
+
+    <Grid RowDefinitions="Auto, Auto, *" Padding="20">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,16">
+            <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
+                <Label Text="Savings Goals" FontSize="24" FontAttributes="Bold" TextColor="#000000"/>
+                <Label Text="Smart Predictive Tracking" FontSize="12" TextColor="#76777d"/>
+            </VerticalStackLayout>
+            <Button Grid.Column="1" 
+                    Text="+ New Goal" 
+                    Command="{Binding ToggleAddGoalFormCommand}"
+                    BackgroundColor="#006c49" 
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    Padding="16,0"
+                    CornerRadius="8"
+                    HeightRequest="36"
+                    VerticalOptions="Center"/>
+        </Grid>
+
+        <Border Grid.Row="1" IsVisible="{Binding IsAddingGoal}" Stroke="#006c49" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#e6fbd4" Margin="0,0,0,16" Padding="16">
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Define Your Target" FontAttributes="Bold" TextColor="#006c49" />
+                <Entry Placeholder="Goal Title (e.g. Dream PC, Car Downpayment)" Text="{Binding NewGoalTitle}" BackgroundColor="#ffffff" TextColor="#000000" PlaceholderColor="#76777d"/>
+                <Entry Placeholder="Target Amount (₱)" Text="{Binding NewGoalTargetAmount}" Keyboard="Numeric" BackgroundColor="#ffffff" TextColor="#000000" PlaceholderColor="#76777d"/>
+
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Target Deadline" FontSize="12" TextColor="#006c49"/>
+                    <DatePicker Date="{Binding NewGoalDeadline}" BackgroundColor="#ffffff" TextColor="#000000"/>
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0,8,0,0">
+                    <Button Grid.Column="0" Text="Cancel" Command="{Binding ToggleAddGoalFormCommand}" BackgroundColor="#ffffff" TextColor="#ba1a1a" BorderColor="#ba1a1a" BorderWidth="1" CornerRadius="8"/>
+                    <Button Grid.Column="1" Text="Save Goal" Command="{Binding SaveNewGoalCommand}" BackgroundColor="#131b2e" TextColor="White" FontAttributes="Bold" CornerRadius="8"/>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <RefreshView Grid.Row="2" IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadGoalsCommand}">
+            <CollectionView ItemsSource="{Binding Goals}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SavingsGoal">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems>
+                                    <SwipeItem Text="Delete" BackgroundColor="#ba1a1a" 
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:GoalsViewModel}}, Path=DeleteGoalCommand}" 
+                                               CommandParameter="{Binding .}"/>
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,12" Padding="16">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:GoalsViewModel}}, Path=NavigateToDetailsCommand}" CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <VerticalStackLayout Spacing="8">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <Label Grid.Column="0" Text="{Binding Title}" FontSize="16" FontAttributes="Bold" TextColor="#000000"/>
+                                        <Label Grid.Column="1" Text="{Binding Deadline, StringFormat='Due: {0:MMM yyyy}'}" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
+                                    </Grid>
+
+                                    <ProgressBar Progress="{Binding ProgressPercentage}" ProgressColor="#006c49" HeightRequest="8" Margin="0,4"/>
+
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <Label Grid.Column="0" Text="{Binding CurrentSavings, StringFormat='₱{0:N2} Saved'}" FontSize="12" TextColor="#006c49" FontAttributes="Bold"/>
+                                        <Label Grid.Column="1" Text="{Binding TargetAmount, StringFormat='Target: ₱{0:N2}'}" FontSize="12" TextColor="#76777d"/>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

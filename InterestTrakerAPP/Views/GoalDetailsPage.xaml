@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InterestTrakerAPP.ViewModels"
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
+             x:Class="InterestTrakerAPP.Views.GoalDetailsPage"
+             x:DataType="viewmodels:GoalDetailsViewModel"
+             BackgroundColor="#fcf8fa"
+             Title="Goal Analytics">
+
+    <Grid RowDefinitions="Auto, Auto, Auto, *" Padding="20">
+
+        <Border Grid.Row="0" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,16" Padding="20">
+            <VerticalStackLayout Spacing="8">
+                <Label Text="{Binding ActiveGoal.Title}" FontSize="24" FontAttributes="Bold" TextColor="#000000" HorizontalOptions="Center"/>
+                <Label Text="{Binding ActiveGoal.Deadline, StringFormat='Target Date: {0:MMMM dd, yyyy}'}" FontSize="14" TextColor="#76777d" HorizontalOptions="Center"/>
+
+                <ProgressBar Progress="{Binding ActiveGoal.ProgressPercentage}" ProgressColor="#006c49" HeightRequest="12" Margin="0,12"/>
+
+                <Grid ColumnDefinitions="*, *">
+                    <VerticalStackLayout Grid.Column="0">
+                        <Label Text="Saved So Far" FontSize="12" TextColor="#76777d"/>
+                        <Label Text="{Binding ActiveGoal.CurrentSavings, StringFormat='₱{0:N2}'}" FontSize="18" FontAttributes="Bold" TextColor="#006c49"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
+                        <Label Text="Target Amount" FontSize="12" TextColor="#76777d" HorizontalOptions="End"/>
+                        <Label Text="{Binding ActiveGoal.TargetAmount, StringFormat='₱{0:N2}'}" FontSize="18" FontAttributes="Bold" TextColor="#000000" HorizontalOptions="End"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*, *" ColumnSpacing="12" Margin="0,0,0,24">
+
+            <Border Grid.Column="0" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#131b2e" Padding="16">
+                <VerticalStackLayout>
+                    <Label Text="REQUIRED PACE" FontSize="10" FontAttributes="Bold" TextColor="#a5a6ac" Margin="0,0,0,4"/>
+                    <Label Text="{Binding RequiredPaceText}" FontSize="16" FontAttributes="Bold" TextColor="White"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border Grid.Column="1" Stroke="#006c49" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#e6fbd4" Padding="16">
+                <VerticalStackLayout>
+                    <Label Text="FORECASTED FINISH" FontSize="10" FontAttributes="Bold" TextColor="#006c49" Margin="0,0,0,4"/>
+                    <Label Text="{Binding EstimatedCompletionText}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,24" Padding="16">
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Log a Contribution" FontAttributes="Bold" TextColor="#000000"/>
+                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="12">
+                    <Entry Grid.Column="0" 
+                           Placeholder="Amount (e.g. 1500)" 
+                           Text="{Binding DepositAmount}" 
+                           Keyboard="Numeric" 
+                           BackgroundColor="#f6f3f5"
+                           TextColor="#000000"
+                           PlaceholderColor="#76777d"/>
+
+                    <Button Grid.Column="1" 
+                            Text="Save" 
+                            Command="{Binding AddDepositCommand}" 
+                            BackgroundColor="#006c49" 
+                            TextColor="White" 
+                            FontAttributes="Bold" 
+                            CornerRadius="8"
+                            WidthRequest="100"/>
+                </Grid>
+            </VerticalStackLayout>
+        </Border>
+
+        <VerticalStackLayout Grid.Row="3">
+            <Label Text="History" FontSize="18" FontAttributes="Bold" TextColor="#000000" Margin="0,0,0,12"/>
+            <CollectionView ItemsSource="{Binding ContributionHistory}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:GoalContribution">
+                        <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#ffffff" Margin="0,0,0,8" Padding="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0" Text="{Binding ContributionDate, StringFormat='{0:MMM dd, yyyy - hh:mm tt}'}" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
+                                <Label Grid.Column="1" Text="{Binding Amount, StringFormat='+₱{0:N2}'}" FontSize="16" FontAttributes="Bold" TextColor="#006c49" VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.EmptyView>
+                    <Label Text="No contributions yet. Start saving!" HorizontalOptions="Center" TextColor="#76777d" Margin="0,20,0,0"/>
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>
