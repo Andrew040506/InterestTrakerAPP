@@ -128,10 +128,30 @@ namespace InterestTrakerAPP.Services
         public void DeleteHolding(object holding) => _db.Delete(holding);
 
         // --- ENTITY CREATION (Mutable Actions) ---
-        public void SaveAccount(LedgerAccount account) => _db.InsertOrReplace(account);
-        public void SaveGoal(SavingsGoal goal) => _db.InsertOrReplace(goal);
-        public void SaveHolding(PortfolioItem holding) => _db.InsertOrReplace(holding);
-        public void SaveWatchlistAsset(AssetQuote asset) => _db.InsertOrReplace(asset);
+        // --- ENTITY CREATION & UPDATING (Mutable Actions) ---
+
+        public void SaveAccount(LedgerAccount account)
+        {
+            if (account.Id != 0) _db.Update(account);
+            else _db.Insert(account);
+        }
+
+        public void SaveGoal(SavingsGoal goal)
+        {
+            if (goal.Id != 0) _db.Update(goal);
+            else _db.Insert(goal);
+        }
+
+        public void SaveHolding(PortfolioItem holding)
+        {
+            if (holding.Id != 0) _db.Update(holding);
+            else _db.Insert(holding);
+        }
+        public void SaveWatchlistAsset(AssetQuote asset)
+        {
+            if (asset.Id != 0) _db.Update(asset);
+            else _db.Insert(asset);
+        }
 
         // --- ENTITY RETRIEVAL (Mutable Actions) ---
         public List<PortfolioItem> GetAllHoldings() => _db.Table<PortfolioItem>().ToList();

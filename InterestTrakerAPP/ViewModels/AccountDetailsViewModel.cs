@@ -23,7 +23,7 @@ namespace InterestTrakerAPP.ViewModels
         public string DisplayBalance => $"₱{CurrentBalance:N2}";
 
         // Form Inputs
-        [ObservableProperty] private string _transactionType = "Expense";
+        [ObservableProperty] private string _transactionType = "Inflow";
         [ObservableProperty] private decimal _amount;
         [ObservableProperty] private string _notes = string.Empty;
 

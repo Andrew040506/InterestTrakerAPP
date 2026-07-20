@@ -62,7 +62,7 @@
 
         <CollectionView Grid.Row="2" ItemsSource="{Binding Transactions}" SelectionMode="None">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:LedgerTransaction">
+                <DataTemplate x:DataType="models:FinancialTransaction">
                     <SwipeView>
                         <SwipeView.RightItems>
                             <SwipeItems>
@@ -74,15 +74,19 @@
                         <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#ffffff" Margin="0,0,0,8" Padding="12">
                             <Grid ColumnDefinitions="*, Auto">
                                 <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                                    <Label Text="{Binding Notes}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
+                                    <!-- NEW: Explicitly shows Inflow/Outflow -->
+                                    <Label Text="{Binding TransactionType}" FontSize="12" FontAttributes="Bold" TextColor="#76777d" TextTransform="Uppercase"/>
+
+                                    <Label Text="{Binding Description}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
                                     <Label Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy}'}" FontSize="10" TextColor="#76777d"/>
                                 </VerticalStackLayout>
-                                <Label Grid.Column="1" Text="{Binding DisplayAmount}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center">
+
+                                <Label Grid.Column="1" Text="{Binding Amount, StringFormat='₱{0:N2}'}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center">
                                     <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Inflow">
+                                        <DataTrigger TargetType="Label" Binding="{Binding TransactionType}" Value="Inflow">
                                             <Setter Property="TextColor" Value="#006c49" />
                                         </DataTrigger>
-                                        <DataTrigger TargetType="Label" Binding="{Binding Type}" Value="Outflow">
+                                        <DataTrigger TargetType="Label" Binding="{Binding TransactionType}" Value="Outflow">
                                             <Setter Property="TextColor" Value="#ba1a1a" />
                                         </DataTrigger>
                                     </Label.Triggers>
