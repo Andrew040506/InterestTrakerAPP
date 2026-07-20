@@ -7,7 +7,6 @@ namespace InterestTrakerAPP.Views
     {
         private readonly DatabaseService _dbService;
 
-        // NEW: Ask for the DatabaseService in the constructor!
         public MasterLogPage(DatabaseService dbService)
         {
             InitializeComponent();
@@ -26,8 +25,8 @@ namespace InterestTrakerAPP.Views
 
         private void LoadAuditTrail()
         {
-            // Call the master filter method we just built in the DatabaseService
-            var allTransactions = _dbService.GetAllTransactions();
+            // Use the enriched display items so account names are visible
+            var allTransactions = _dbService.GetAllTransactionDisplayItems();
 
             // Bind the data directly to the XAML CollectionView
             TransactionsListView.ItemsSource = allTransactions;

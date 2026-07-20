@@ -17,12 +17,25 @@ namespace InterestTrakerAPP.ViewModels
         [ObservableProperty] private int _goalId;
         [ObservableProperty] private SavingsGoal? _activeGoal;
 
+        // Automatically triggers loading as soon as Shell passes the GoalId query parameter
+        partial void OnGoalIdChanged(int value)
+        {
+            if (value > 0)
+            {
+                LoadGoalDetails();
+            }
+        }
+
         // Analytics Metrics
         [ObservableProperty] private string _requiredPaceText = "Calculating...";
         [ObservableProperty] private string _estimatedCompletionText = "Calculating...";
 
         // Deposit Entry Field
         [ObservableProperty] private decimal _depositAmount;
+
+        // Funding Source Picker Properties
+        [ObservableProperty] private ObservableCollection<LedgerAccount> _availableAccounts = new();
+        [ObservableProperty] private LedgerAccount? _selectedFundingAccount;
 
         // Visual List Data
         public ObservableCollection<FinancialTransaction> ContributionHistory { get; } = new();
@@ -35,13 +48,30 @@ namespace InterestTrakerAPP.ViewModels
         [RelayCommand]
         public void LoadGoalDetails()
         {
-            // 1. Fetch the master goals using the new synchronous engine
+            // 1. Fetch the master goals using the synchronous engine
             var goals = _databaseService.GetAllGoals();
             ActiveGoal = goals.FirstOrDefault(g => g.Id == GoalId);
 
             if (ActiveGoal == null) return;
 
-            // 2. Fetch the contributions securely using the new filter
+            // 2. Load available ledger accounts for the funding source picker
+            var accounts = _databaseService.GetAllAccounts();
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                AvailableAccounts.Clear();
+                foreach (var acc in accounts)
+                {
+                    AvailableAccounts.Add(acc);
+                }
+
+                // Default to the first account if none is currently selected
+                if (SelectedFundingAccount == null && AvailableAccounts.Any())
+                {
+                    SelectedFundingAccount = AvailableAccounts.First();
+                }
+            });
+
+            // 3. Fetch the contributions securely using the filter
             var contributions = _databaseService.GetGoalTransactions(GoalId);
 
             // Update the UI list
@@ -57,7 +87,7 @@ namespace InterestTrakerAPP.ViewModels
             // Using the updated CurrentBalance property
             decimal remainingAmount = ActiveGoal.TargetAmount - ActiveGoal.CurrentBalance;
 
-            // 3. Calculate Target Pacing using the updated TargetDate property
+            // 4. Calculate Target Pacing using the updated TargetDate property
             TimeSpan remainingTime = ActiveGoal.TargetDate - DateTime.Today;
             if (remainingAmount <= 0)
             {
@@ -76,12 +106,11 @@ namespace InterestTrakerAPP.ViewModels
                 RequiredPaceText = "Deadline passed";
             }
 
-            // 4. Calculate Predictive Forecasting
+            // 5. Calculate Predictive Forecasting
             if (contributions.Count >= 2)
             {
                 // The database service sorts newest first. 
                 // Therefore, the FIRST historical deposit is the LAST item in the list.
-                // Updated to use the new Timestamp property from FinancialTransaction
                 DateTime firstDepositDate = contributions.Last().Timestamp;
                 TimeSpan daysElapsed = DateTime.Now - firstDepositDate;
                 double totalDays = Math.Max(1.0, daysElapsed.TotalDays);
@@ -111,14 +140,20 @@ namespace InterestTrakerAPP.ViewModels
         {
             if (DepositAmount <= 0 || ActiveGoal == null) return;
 
-            // 5. Execute the atomic transfer via the zero-trust engine
+            // Safety check: ensure a funding account is chosen
+            if (SelectedFundingAccount == null)
+            {
+                return;
+            }
+
+            // 6. Execute the atomic transfer using the selected account's actual ID
             _databaseService.ExecuteMoneyFlow(
-                sourceAccountId: 1, // Assumes ID 1 is the main ledger account from our SeedTestData
+                sourceAccountId: SelectedFundingAccount.Id,
                 destAccountId: null,
                 targetGoalId: GoalId,
                 amount: DepositAmount,
                 type: "GoalContribution",
-                description: "Manual goal contribution"
+                description: $"Contribution from {SelectedFundingAccount.AccountName}"
             );
 
             // Clear the entry box

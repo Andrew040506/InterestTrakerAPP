@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -27,7 +27,8 @@ namespace InterestTrakerAPP.ViewModels
         [ObservableProperty] private decimal _amount;
         [ObservableProperty] private string _notes = string.Empty;
 
-        public ObservableCollection<FinancialTransaction> Transactions { get; } = new();
+        // Now uses TransactionDisplayItem for enriched account-name labels
+        public ObservableCollection<TransactionDisplayItem> Transactions { get; } = new();
 
         public AccountDetailsViewModel(DatabaseService databaseService)
         {
@@ -41,12 +42,12 @@ namespace InterestTrakerAPP.ViewModels
             var myAccount = _databaseService.GetAccount(AccountId);
             if (myAccount != null)
             {
-                CurrentBalance = myAccount.Balance; // Updated to match the new Balance property
+                CurrentBalance = myAccount.Balance;
                 OnPropertyChanged(nameof(DisplayBalance));
             }
 
-            // 2. Load all transactions using our new zero-trust filter!
-            var allTx = _databaseService.GetLedgerTransactions(AccountId);
+            // 2. Load enriched display items so account names are resolved
+            var allTx = _databaseService.GetLedgerTransactionDisplayItems(AccountId);
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -78,10 +79,10 @@ namespace InterestTrakerAPP.ViewModels
         }
 
         [RelayCommand]
-        private void DeleteTransaction(FinancialTransaction tx)
+        private void DeleteTransaction(TransactionDisplayItem tx)
         {
             // ZERO-TRUST ENFORCEMENT:
-            // Immutability means we NEVER delete records. 
+            // Immutability means we NEVER delete records.
             // In a real audit-ready system, you would log a "Reversal" transaction instead.
             // (Leave this empty to enforce audit integrity!)
         }

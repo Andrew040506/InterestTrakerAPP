@@ -62,7 +62,7 @@
 
         <CollectionView Grid.Row="2" ItemsSource="{Binding Transactions}" SelectionMode="None">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:FinancialTransaction">
+                <DataTemplate x:DataType="models:TransactionDisplayItem">
                     <SwipeView>
                         <SwipeView.RightItems>
                             <SwipeItems>
@@ -72,21 +72,47 @@
                             </SwipeItems>
                         </SwipeView.RightItems>
                         <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#ffffff" Margin="0,0,0,8" Padding="12">
-                            <Grid ColumnDefinitions="*, Auto">
-                                <VerticalStackLayout Grid.Column="0" VerticalOptions="Center">
-                                    <!-- NEW: Explicitly shows Inflow/Outflow -->
-                                    <Label Text="{Binding TransactionType}" FontSize="12" FontAttributes="Bold" TextColor="#76777d" TextTransform="Uppercase"/>
+                            <Grid ColumnDefinitions="Auto, *, Auto">
+
+                                <!-- Colour-coded indicator bar -->
+                                <Border Grid.Column="0"
+                                        WidthRequest="4" HeightRequest="36"
+                                        StrokeShape="RoundRectangle 2"
+                                        Margin="0,0,10,0"
+                                        VerticalOptions="Center">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsPositive}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="#006c49" />
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsPositive}" Value="False">
+                                            <Setter Property="BackgroundColor" Value="#ba1a1a" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <!-- DisplayType: e.g. "Inflow → Main Checking" -->
+                                    <Label Text="{Binding DisplayType}" FontSize="12" FontAttributes="Bold" TextTransform="Uppercase">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="True">
+                                                <Setter Property="TextColor" Value="#006c49" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="False">
+                                                <Setter Property="TextColor" Value="#ba1a1a" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
 
                                     <Label Text="{Binding Description}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>
                                     <Label Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy}'}" FontSize="10" TextColor="#76777d"/>
                                 </VerticalStackLayout>
 
-                                <Label Grid.Column="1" Text="{Binding Amount, StringFormat='₱{0:N2}'}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center">
+                                <Label Grid.Column="2" Text="{Binding Amount, StringFormat='₱{0:N2}'}" FontSize="16" FontAttributes="Bold" VerticalOptions="Center">
                                     <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding TransactionType}" Value="Inflow">
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="True">
                                             <Setter Property="TextColor" Value="#006c49" />
                                         </DataTrigger>
-                                        <DataTrigger TargetType="Label" Binding="{Binding TransactionType}" Value="Outflow">
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="False">
                                             <Setter Property="TextColor" Value="#ba1a1a" />
                                         </DataTrigger>
                                     </Label.Triggers>

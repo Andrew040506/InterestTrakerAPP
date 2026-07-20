@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:InterestTrakerAPP.Models"
              x:Class="InterestTrakerAPP.Views.MasterLogPage"
              Title="System Audit Trail">
 
@@ -12,13 +13,70 @@
 
         <CollectionView x:Name="TransactionsListView" Grid.Row="1" Margin="15">
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:TransactionDisplayItem">
                     <Border Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="0,5,0,5" BackgroundColor="White">
-                        <Grid Padding="15" ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
-                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding TransactionType}" FontAttributes="Bold" FontSize="16" TextColor="#333333" />
-                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding Description}" FontSize="14" TextColor="#777777" />
-                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding Amount, StringFormat='{0:C2}'}" FontAttributes="Bold" FontSize="16" HorizontalOptions="End" TextColor="#2B0B98"/>
-                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy HH:mm}'}" FontSize="12" TextColor="#999999" HorizontalOptions="End" />
+                        <Grid Padding="15" ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto">
+
+                            <!-- Colour-coded indicator dot -->
+                            <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                    WidthRequest="4" HeightRequest="36"
+                                    StrokeShape="RoundRectangle 2"
+                                    Margin="0,0,10,0"
+                                    VerticalOptions="Center">
+                                <Border.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsPositive}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="#006c49" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsPositive}" Value="False">
+                                        <Setter Property="BackgroundColor" Value="#ba1a1a" />
+                                    </DataTrigger>
+                                </Border.Triggers>
+                            </Border>
+
+                            <!-- DisplayType: e.g. "Inflow → Main Checking" -->
+                            <Label Grid.Row="0" Grid.Column="1"
+                                   Text="{Binding DisplayType}"
+                                   FontAttributes="Bold"
+                                   FontSize="15"
+                                   TextColor="#333333">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="True">
+                                        <Setter Property="TextColor" Value="#006c49" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="False">
+                                        <Setter Property="TextColor" Value="#ba1a1a" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+
+                            <!-- Description / notes -->
+                            <Label Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding Description}"
+                                   FontSize="13"
+                                   TextColor="#777777" />
+
+                            <!-- Amount -->
+                            <Label Grid.Row="0" Grid.Column="2"
+                                   Text="{Binding Amount, StringFormat='₱{0:N2}'}"
+                                   FontAttributes="Bold"
+                                   FontSize="16"
+                                   HorizontalOptions="End">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="True">
+                                        <Setter Property="TextColor" Value="#006c49" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding IsPositive}" Value="False">
+                                        <Setter Property="TextColor" Value="#ba1a1a" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+
+                            <!-- Timestamp -->
+                            <Label Grid.Row="1" Grid.Column="2"
+                                   Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy HH:mm}'}"
+                                   FontSize="11"
+                                   TextColor="#999999"
+                                   HorizontalOptions="End" />
                         </Grid>
                     </Border>
                 </DataTemplate>

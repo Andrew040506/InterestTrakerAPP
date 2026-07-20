@@ -43,8 +43,6 @@ public static class MauiProgram
         builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<GoalsPage>();
 
-        builder.Services.AddTransient<GoalDetailsViewModel>();
-        builder.Services.AddTransient<GoalDetailsPage>();
 
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<LoginPage>();
@@ -53,7 +51,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<Services.DatabaseService>();
 
         builder.Services.AddTransient<Views.LoginPage>();
-
+        // Register the Goal Details Page and ViewModel
+        builder.Services.AddTransient<Views.GoalDetailsPage>();
+        builder.Services.AddTransient<ViewModels.GoalDetailsViewModel>();
         return builder.Build();
     }
 }

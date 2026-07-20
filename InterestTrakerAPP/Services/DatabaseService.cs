@@ -1,4 +1,4 @@
-﻿using SQLite;
+using SQLite;
 using System;
 using System.IO;
 using InterestTrakerAPP.Models;
@@ -191,6 +191,61 @@ namespace InterestTrakerAPP.Services
 
         // --- DATA RETRIEVAL (Zero-Trust Audits) ---
         public List<FinancialTransaction> GetAllTransactions() => _db.Table<FinancialTransaction>().OrderByDescending(t => t.Timestamp).ToList();
+
+        /// <summary>
+        /// Returns all transactions enriched with resolved account/goal names for display.
+        /// Performs a single-pass dictionary join — no N+1 queries.
+        /// </summary>
+        public List<TransactionDisplayItem> GetAllTransactionDisplayItems()
+        {
+            var transactions = _db.Table<FinancialTransaction>().OrderByDescending(t => t.Timestamp).ToList();
+            return EnrichTransactions(transactions);
+        }
+
+        /// <summary>
+        /// Returns transactions for a specific account, enriched with resolved names.
+        /// </summary>
+        public List<TransactionDisplayItem> GetLedgerTransactionDisplayItems(int accountId)
+        {
+            var transactions = _db.Table<FinancialTransaction>()
+                .Where(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId)
+                .OrderByDescending(t => t.Timestamp)
+                .ToList();
+            return EnrichTransactions(transactions);
+        }
+
+        /// <summary>
+        /// Shared enrichment logic: resolves account/goal IDs into display names.
+        /// </summary>
+        private List<TransactionDisplayItem> EnrichTransactions(List<FinancialTransaction> transactions)
+        {
+            // Build lookup dictionaries once so we don't hit the DB in a loop
+            var accounts = _db.Table<LedgerAccount>().ToList();
+            var goals = _db.Table<SavingsGoal>().ToList();
+
+            var accountMap = new System.Collections.Generic.Dictionary<int, string>();
+            foreach (var a in accounts) accountMap[a.Id] = a.AccountName;
+
+            var goalMap = new System.Collections.Generic.Dictionary<int, string>();
+            foreach (var g in goals) goalMap[g.Id] = g.Title;
+
+            var result = new List<TransactionDisplayItem>();
+            foreach (var tx in transactions)
+            {
+                result.Add(new TransactionDisplayItem
+                {
+                    Id = tx.Id,
+                    TransactionType = tx.TransactionType,
+                    Amount = tx.Amount,
+                    Timestamp = tx.Timestamp,
+                    Description = tx.Description,
+                    SourceAccountName = tx.SourceAccountId.HasValue && accountMap.TryGetValue(tx.SourceAccountId.Value, out var src) ? src : null,
+                    DestinationAccountName = tx.DestinationAccountId.HasValue && accountMap.TryGetValue(tx.DestinationAccountId.Value, out var dst) ? dst : null,
+                    TargetGoalTitle = tx.TargetGoalId.HasValue && goalMap.TryGetValue(tx.TargetGoalId.Value, out var gl) ? gl : null,
+                });
+            }
+            return result;
+        }
 
         public List<FinancialTransaction> GetLedgerTransactions(int accountId) => _db.Table<FinancialTransaction>().Where(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId).OrderByDescending(t => t.Timestamp).ToList();
 

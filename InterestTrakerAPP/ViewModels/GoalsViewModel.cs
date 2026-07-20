@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InterestTrakerAPP.Models;
 using InterestTrakerAPP.Services;
-using Microsoft.Maui.ApplicationModel;
-using Microsoft.Maui.Controls;
+using InterestTrakerAPP.Views;
 
 namespace InterestTrakerAPP.ViewModels
 {
@@ -15,36 +11,43 @@ namespace InterestTrakerAPP.ViewModels
     {
         private readonly DatabaseService _databaseService;
 
-        [ObservableProperty] private bool _isRefreshing;
-        [ObservableProperty] private bool _isAddingGoal;
+        [ObservableProperty]
+        private ObservableCollection<SavingsGoal> _goals = new();
 
-        // Form Inputs
-        [ObservableProperty] private string _newGoalTitle = string.Empty;
-        [ObservableProperty] private decimal _newGoalTargetAmount;
-        [ObservableProperty] private DateTime _newGoalTargetDate = DateTime.Now.AddMonths(3);
+        [ObservableProperty]
+        private bool _isRefreshing;
 
-        public ObservableCollection<SavingsGoal> Goals { get; } = new();
+        [ObservableProperty]
+        private bool _isAddingGoal;
+
+        [ObservableProperty]
+        private string _newGoalTitle;
+
+        [ObservableProperty]
+        private decimal _newGoalTargetAmount;
+
+        [ObservableProperty]
+        private DateTime _newGoalDeadline = DateTime.Today.AddMonths(1);
 
         public GoalsViewModel(DatabaseService databaseService)
         {
             _databaseService = databaseService;
+            LoadGoals();
         }
 
         [RelayCommand]
-        public void LoadGoals()
+        private void LoadGoals()
         {
             IsRefreshing = true;
-            var goals = _databaseService.GetAllGoals();
 
-            MainThread.BeginInvokeOnMainThread(() =>
+            var list = _databaseService.GetAllGoals();
+            Goals.Clear();
+            foreach (var goal in list)
             {
-                Goals.Clear();
-                foreach (var goal in goals)
-                {
-                    Goals.Add(goal);
-                }
-                IsRefreshing = false;
-            });
+                Goals.Add(goal);
+            }
+
+            IsRefreshing = false;
         }
 
         [RelayCommand]
@@ -54,56 +57,45 @@ namespace InterestTrakerAPP.ViewModels
         }
 
         [RelayCommand]
-        private async Task SaveNewGoalAsync()
+        private void SaveNewGoal()
         {
             if (string.IsNullOrWhiteSpace(NewGoalTitle) || NewGoalTargetAmount <= 0)
-            {
-                await Shell.Current.DisplayAlert("Error", "Please enter a valid title and target amount.", "OK");
                 return;
-            }
 
-            var newGoal = new SavingsGoal
+            // Fixed: Use SaveGoal (or your database service's correct insert method)
+            _databaseService.SaveGoal(new SavingsGoal
             {
                 Title = NewGoalTitle,
                 TargetAmount = NewGoalTargetAmount,
-                TargetDate = NewGoalTargetDate, // Updated property
+                TargetDate = NewGoalDeadline,
                 CurrentBalance = 0
-            };
-
-            _databaseService.SaveGoal(newGoal);
+            });
 
             NewGoalTitle = string.Empty;
             NewGoalTargetAmount = 0;
-            NewGoalTargetDate = DateTime.Now.AddMonths(3);
             IsAddingGoal = false;
 
             LoadGoals();
         }
 
         [RelayCommand]
-        private async Task DeleteGoalAsync(SavingsGoal goal)
+        private void DeleteGoal(SavingsGoal goal)
         {
-            if (goal == null) return;
-
-            bool confirm = await Shell.Current.DisplayAlert("Delete Goal", $"Erase '{goal.Title}' and all its tracking data?", "Delete", "Cancel");
-            if (confirm)
+            if (goal != null)
             {
+                // Fixed: Pass the 'goal' object directly if the method expects the entity model
                 _databaseService.DeleteGoal(goal);
-                LoadGoals();
+                Goals.Remove(goal);
             }
         }
 
         [RelayCommand]
-        private async Task NavigateToDetailsAsync(SavingsGoal goal)
+        private async Task NavigateToDetails(SavingsGoal selectedGoal)
         {
-            if (goal == null) return;
+            if (selectedGoal == null) return;
 
-            var navParams = new Dictionary<string, object>
-            {
-                { "GoalId", goal.Id }
-            };
-
-            await Shell.Current.GoToAsync("GoalDetailsPage", navParams);
+            // Fixed: Use Shell QueryParameters to pass the ID automatically to [QueryProperty]
+            await Shell.Current.GoToAsync($"{nameof(GoalDetailsPage)}?GoalId={selectedGoal.Id}");
         }
     }
 }
