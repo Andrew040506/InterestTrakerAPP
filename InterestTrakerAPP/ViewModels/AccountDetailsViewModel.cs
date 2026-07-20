@@ -1,85 +1,89 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InterestTrakerAPP.Models;
 using InterestTrakerAPP.Services;
+using Microsoft.Maui.ApplicationModel;
 
-namespace InterestTrakerAPP.ViewModels;
-
-[QueryProperty(nameof(AccountId), "AccountId")]
-[QueryProperty(nameof(AccountName), "AccountName")]
-public partial class AccountDetailsViewModel : ObservableObject
+namespace InterestTrakerAPP.ViewModels
 {
-    private readonly DatabaseService _databaseService;
-
-    // Passed in from the Ledger Page
-    [ObservableProperty] private int _accountId;
-    [ObservableProperty] private string _accountName = string.Empty;
-
-    [ObservableProperty] private decimal _currentBalance;
-    public string DisplayBalance => $"₱{CurrentBalance:N2}";
-
-    // Form Inputs
-    [ObservableProperty] private string _transactionType = "Inflow";
-    [ObservableProperty] private decimal _amount;
-    [ObservableProperty] private string _notes = string.Empty;
-
-    public ObservableCollection<LedgerTransaction> Transactions { get; } = new();
-
-    public AccountDetailsViewModel(DatabaseService databaseService)
+    [QueryProperty(nameof(AccountId), "AccountId")]
+    [QueryProperty(nameof(AccountName), "AccountName")]
+    public partial class AccountDetailsViewModel : ObservableObject
     {
-        _databaseService = databaseService;
-    }
+        private readonly DatabaseService _databaseService;
 
-    [RelayCommand]
-    public async Task LoadDataAsync()
-    {
-        // 1. Load this specific account to get its latest balance
-        var accounts = await _databaseService.GetAccountsAsync();
-        var myAccount = accounts.FirstOrDefault(a => a.Id == AccountId);
-        if (myAccount != null)
+        // Passed in from the Ledger Page
+        [ObservableProperty] private int _accountId;
+        [ObservableProperty] private string _accountName = string.Empty;
+
+        [ObservableProperty] private decimal _currentBalance;
+        public string DisplayBalance => $"₱{CurrentBalance:N2}";
+
+        // Form Inputs
+        [ObservableProperty] private string _transactionType = "Expense";
+        [ObservableProperty] private decimal _amount;
+        [ObservableProperty] private string _notes = string.Empty;
+
+        public ObservableCollection<FinancialTransaction> Transactions { get; } = new();
+
+        public AccountDetailsViewModel(DatabaseService databaseService)
         {
-            CurrentBalance = myAccount.CurrentBalance;
-            OnPropertyChanged(nameof(DisplayBalance));
+            _databaseService = databaseService;
         }
 
-        // 2. Load all transactions using our new legal public method!
-        var allTx = await _databaseService.GetLedgerTransactionsAsync(AccountId);
-
-        MainThread.BeginInvokeOnMainThread(() =>
+        [RelayCommand]
+        public void LoadData()
         {
-            Transactions.Clear();
-            foreach (var tx in allTx) Transactions.Add(tx);
-        });
-    }
+            // 1. Load this specific account to get its latest balance securely
+            var myAccount = _databaseService.GetAccount(AccountId);
+            if (myAccount != null)
+            {
+                CurrentBalance = myAccount.Balance; // Updated to match the new Balance property
+                OnPropertyChanged(nameof(DisplayBalance));
+            }
 
-    [RelayCommand]
-    private async Task SubmitTransactionAsync()
-    {
-        if (Amount <= 0) return;
+            // 2. Load all transactions using our new zero-trust filter!
+            var allTx = _databaseService.GetLedgerTransactions(AccountId);
 
-        var tx = new LedgerTransaction
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Transactions.Clear();
+                foreach (var tx in allTx) Transactions.Add(tx);
+            });
+        }
+
+        [RelayCommand]
+        private void SubmitTransaction()
         {
-            AccountId = AccountId,
-            Type = TransactionType,
-            Amount = Amount,
-            Notes = Notes,
-            Timestamp = DateTime.Now
-        };
+            if (Amount <= 0) return;
 
-        await _databaseService.SaveLedgerTransactionAsync(tx);
+            // Execute the atomic transfer via the zero-trust engine
+            // For manual ledger entries, we assume it's an external expense (destAccountId is null)
+            _databaseService.ExecuteMoneyFlow(
+                sourceAccountId: AccountId,
+                destAccountId: null,
+                targetGoalId: null,
+                amount: Amount,
+                type: TransactionType,
+                description: Notes
+            );
 
-        // Reset form and reload list
-        Amount = 0;
-        Notes = string.Empty;
-        await LoadDataAsync();
-    }
+            // Reset form and reload list
+            Amount = 0;
+            Notes = string.Empty;
+            LoadData();
+        }
 
-    [RelayCommand]
-    private async Task DeleteTransactionAsync(LedgerTransaction tx)
-    {
-        if (tx == null) return;
-        await _databaseService.DeleteLedgerTransactionAsync(tx);
-        await LoadDataAsync();
+        [RelayCommand]
+        private void DeleteTransaction(FinancialTransaction tx)
+        {
+            // ZERO-TRUST ENFORCEMENT:
+            // Immutability means we NEVER delete records. 
+            // In a real audit-ready system, you would log a "Reversal" transaction instead.
+            // (Leave this empty to enforce audit integrity!)
+        }
     }
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="InterestTrakerAPP.Views.MasterLogPage"
+             Title="System Audit Trail">
+
+    <Grid RowDefinitions="Auto, *">
+        <VerticalStackLayout Grid.Row="0" Padding="20" BackgroundColor="#2B0B98">
+            <Label Text="Master Audit Log" FontSize="28" FontAttributes="Bold" TextColor="White" />
+            <Label Text="Immutable system-wide transaction history" FontSize="14" TextColor="#D1C4E9" />
+        </VerticalStackLayout>
+
+        <CollectionView x:Name="TransactionsListView" Grid.Row="1" Margin="15">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="#E0E0E0" StrokeThickness="1" StrokeShape="RoundRectangle 8" Margin="0,5,0,5" BackgroundColor="White">
+                        <Grid Padding="15" ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding TransactionType}" FontAttributes="Bold" FontSize="16" TextColor="#333333" />
+                            <Label Grid.Row="1" Grid.Column="0" Text="{Binding Description}" FontSize="14" TextColor="#777777" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding Amount, StringFormat='{0:C2}'}" FontAttributes="Bold" FontSize="16" HorizontalOptions="End" TextColor="#2B0B98"/>
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy HH:mm}'}" FontSize="12" TextColor="#999999" HorizontalOptions="End" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

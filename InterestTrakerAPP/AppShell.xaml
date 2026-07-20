@@ -22,7 +22,10 @@
         <Tab Title="Goals">
             <ShellContent ContentTemplate="{DataTemplate views:GoalsPage}" Route="GoalsPage" />
         </Tab>
-        
+        <Tab Title="Master Log">
+            <ShellContent ContentTemplate="{DataTemplate views:MasterLogPage}" Route="MasterLogPage" />
+        </Tab>
+
     </TabBar>
 
 </Shell>

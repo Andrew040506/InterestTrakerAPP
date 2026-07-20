@@ -1,19 +1,13 @@
 ﻿using SQLite;
 
-namespace InterestTrakerAPP.Models;
-
-public class LedgerAccount
+namespace InterestTrakerAPP.Models
 {
-    [PrimaryKey, AutoIncrement]
-    public int Id { get; set; }
-
-    [NotNull]
-    public string Name { get; set; } = string.Empty;
-
-    // We calculate this dynamically based on transactions, so we don't save it to the DB directly
-    [Ignore]
-    public decimal CurrentBalance { get; set; }
-
-    [Ignore]
-    public string DisplayBalance => $"₱{CurrentBalance:N2}";
+    public class LedgerAccount
+    {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+        public string AccountName { get; set; }
+        public decimal Balance { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
 }

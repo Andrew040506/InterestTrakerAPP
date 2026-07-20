@@ -1,125 +1,131 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InterestTrakerAPP.Models;
 using InterestTrakerAPP.Services;
+using Microsoft.Maui.ApplicationModel;
 
-namespace InterestTrakerAPP.ViewModels;
-
-[QueryProperty(nameof(GoalId), "GoalId")]
-public partial class GoalDetailsViewModel : ObservableObject
+namespace InterestTrakerAPP.ViewModels
 {
-    private readonly DatabaseService _databaseService;
-
-    [ObservableProperty] private int _goalId;
-    [ObservableProperty] private SavingsGoal? _activeGoal;
-
-    // Analytics Metrics
-    [ObservableProperty] private string _requiredPaceText = "Calculating...";
-    [ObservableProperty] private string _estimatedCompletionText = "Calculating...";
-
-    // Deposit Entry Field
-    [ObservableProperty] private decimal _depositAmount;
-
-    // Visual List Data
-    public ObservableCollection<GoalContribution> ContributionHistory { get; } = new();
-
-    public GoalDetailsViewModel(DatabaseService databaseService)
+    [QueryProperty(nameof(GoalId), "GoalId")]
+    public partial class GoalDetailsViewModel : ObservableObject
     {
-        _databaseService = databaseService;
-    }
+        private readonly DatabaseService _databaseService;
 
-    [RelayCommand]
-    public async Task LoadGoalDetailsAsync()
-    {
-        // 1. Fetch the master goals using the legal public method
-        var goals = await _databaseService.GetGoalsWithAnalyticsAsync();
-        ActiveGoal = goals.FirstOrDefault(g => g.Id == GoalId);
+        [ObservableProperty] private int _goalId;
+        [ObservableProperty] private SavingsGoal? _activeGoal;
 
-        if (ActiveGoal == null) return;
+        // Analytics Metrics
+        [ObservableProperty] private string _requiredPaceText = "Calculating...";
+        [ObservableProperty] private string _estimatedCompletionText = "Calculating...";
 
-        // 2. Fetch the contributions legally
-        var contributions = await _databaseService.GetContributionsForGoalAsync(GoalId);
+        // Deposit Entry Field
+        [ObservableProperty] private decimal _depositAmount;
 
-        // Update the UI list
-        MainThread.BeginInvokeOnMainThread(() =>
+        // Visual List Data
+        public ObservableCollection<FinancialTransaction> ContributionHistory { get; } = new();
+
+        public GoalDetailsViewModel(DatabaseService databaseService)
         {
-            ContributionHistory.Clear();
-            foreach (var c in contributions)
+            _databaseService = databaseService;
+        }
+
+        [RelayCommand]
+        public void LoadGoalDetails()
+        {
+            // 1. Fetch the master goals using the new synchronous engine
+            var goals = _databaseService.GetAllGoals();
+            ActiveGoal = goals.FirstOrDefault(g => g.Id == GoalId);
+
+            if (ActiveGoal == null) return;
+
+            // 2. Fetch the contributions securely using the new filter
+            var contributions = _databaseService.GetGoalTransactions(GoalId);
+
+            // Update the UI list
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                ContributionHistory.Add(c);
+                ContributionHistory.Clear();
+                foreach (var c in contributions)
+                {
+                    ContributionHistory.Add(c);
+                }
+            });
+
+            // Using the updated CurrentBalance property
+            decimal remainingAmount = ActiveGoal.TargetAmount - ActiveGoal.CurrentBalance;
+
+            // 3. Calculate Target Pacing using the updated TargetDate property
+            TimeSpan remainingTime = ActiveGoal.TargetDate - DateTime.Today;
+            if (remainingAmount <= 0)
+            {
+                RequiredPaceText = "Goal Accomplished!";
+                EstimatedCompletionText = "Completed!";
+                return;
             }
-        });
 
-        decimal remainingAmount = ActiveGoal.TargetAmount - ActiveGoal.CurrentSavings;
-
-        // 3. Calculate Target Pacing
-        TimeSpan remainingTime = ActiveGoal.Deadline - DateTime.Today;
-        if (remainingAmount <= 0)
-        {
-            RequiredPaceText = "Goal Accomplished!";
-            EstimatedCompletionText = "Completed!";
-            return;
-        }
-
-        if (remainingTime.TotalDays > 0)
-        {
-            decimal dailyRate = remainingAmount / (decimal)remainingTime.TotalDays;
-            RequiredPaceText = $"₱{dailyRate:N2} / day needed";
-        }
-        else
-        {
-            RequiredPaceText = "Deadline passed";
-        }
-
-        // 4. Calculate Predictive Forecasting
-        if (contributions.Count >= 2)
-        {
-            // The database service sorts newest first. 
-            // Therefore, the FIRST historical deposit is the LAST item in the list.
-            DateTime firstDepositDate = contributions.Last().ContributionDate;
-            TimeSpan daysElapsed = DateTime.Now - firstDepositDate;
-            double totalDays = Math.Max(1.0, daysElapsed.TotalDays);
-
-            decimal totalSavedHistorically = contributions.Sum(c => c.Amount);
-            decimal savingsVelocityPerDay = totalSavedHistorically / (decimal)totalDays;
-
-            if (savingsVelocityPerDay > 0)
+            if (remainingTime.TotalDays > 0)
             {
-                int daysToFinish = (int)Math.Ceiling(remainingAmount / savingsVelocityPerDay);
-                DateTime projectedDate = DateTime.Now.AddDays(daysToFinish);
-                EstimatedCompletionText = $"{projectedDate:MMM dd, yyyy} ({daysToFinish} days left)";
+                decimal dailyRate = remainingAmount / (decimal)remainingTime.TotalDays;
+                RequiredPaceText = $"₱{dailyRate:N2} / day needed";
             }
             else
             {
-                EstimatedCompletionText = "Awaiting steady deposits...";
+                RequiredPaceText = "Deadline passed";
+            }
+
+            // 4. Calculate Predictive Forecasting
+            if (contributions.Count >= 2)
+            {
+                // The database service sorts newest first. 
+                // Therefore, the FIRST historical deposit is the LAST item in the list.
+                // Updated to use the new Timestamp property from FinancialTransaction
+                DateTime firstDepositDate = contributions.Last().Timestamp;
+                TimeSpan daysElapsed = DateTime.Now - firstDepositDate;
+                double totalDays = Math.Max(1.0, daysElapsed.TotalDays);
+
+                decimal totalSavedHistorically = contributions.Sum(c => c.Amount);
+                decimal savingsVelocityPerDay = totalSavedHistorically / (decimal)totalDays;
+
+                if (savingsVelocityPerDay > 0)
+                {
+                    int daysToFinish = (int)Math.Ceiling(remainingAmount / savingsVelocityPerDay);
+                    DateTime projectedDate = DateTime.Now.AddDays(daysToFinish);
+                    EstimatedCompletionText = $"{projectedDate:MMM dd, yyyy} ({daysToFinish} days left)";
+                }
+                else
+                {
+                    EstimatedCompletionText = "Awaiting steady deposits...";
+                }
+            }
+            else
+            {
+                EstimatedCompletionText = "Add more historical entries to generate a forecast";
             }
         }
-        else
+
+        [RelayCommand]
+        private void AddDeposit()
         {
-            EstimatedCompletionText = "Add more historical entries to generate a forecast";
+            if (DepositAmount <= 0 || ActiveGoal == null) return;
+
+            // 5. Execute the atomic transfer via the zero-trust engine
+            _databaseService.ExecuteMoneyFlow(
+                sourceAccountId: 1, // Assumes ID 1 is the main ledger account from our SeedTestData
+                destAccountId: null,
+                targetGoalId: GoalId,
+                amount: DepositAmount,
+                type: "GoalContribution",
+                description: "Manual goal contribution"
+            );
+
+            // Clear the entry box
+            DepositAmount = 0;
+
+            // Recalculate the entire page and refresh the lists instantly
+            LoadGoalDetails();
         }
-    }
-
-    [RelayCommand]
-    private async Task AddDepositAsync()
-    {
-        if (DepositAmount <= 0 || ActiveGoal == null) return;
-
-        var deposit = new GoalContribution
-        {
-            GoalId = GoalId,
-            Amount = DepositAmount,
-            ContributionDate = DateTime.Now
-        };
-
-        // Save using the legal public method
-        await _databaseService.SaveContributionAsync(deposit);
-
-        // Clear the entry box
-        DepositAmount = 0;
-
-        // Recalculate the entire page and refresh the lists instantly
-        await LoadGoalDetailsAsync();
     }
 }

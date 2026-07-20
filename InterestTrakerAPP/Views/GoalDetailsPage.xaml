@@ -13,14 +13,14 @@
         <Border Grid.Row="0" Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 12" BackgroundColor="#ffffff" Margin="0,0,0,16" Padding="20">
             <VerticalStackLayout Spacing="8">
                 <Label Text="{Binding ActiveGoal.Title}" FontSize="24" FontAttributes="Bold" TextColor="#000000" HorizontalOptions="Center"/>
-                <Label Text="{Binding ActiveGoal.Deadline, StringFormat='Target Date: {0:MMMM dd, yyyy}'}" FontSize="14" TextColor="#76777d" HorizontalOptions="Center"/>
+                <Label Text="{Binding ActiveGoal.TargetDate, StringFormat='Target Date: {0:MMMM dd, yyyy}'}" FontSize="14" TextColor="#76777d" HorizontalOptions="Center"/>
 
                 <ProgressBar Progress="{Binding ActiveGoal.ProgressPercentage}" ProgressColor="#006c49" HeightRequest="12" Margin="0,12"/>
 
                 <Grid ColumnDefinitions="*, *">
                     <VerticalStackLayout Grid.Column="0">
                         <Label Text="Saved So Far" FontSize="12" TextColor="#76777d"/>
-                        <Label Text="{Binding ActiveGoal.CurrentSavings, StringFormat='₱{0:N2}'}" FontSize="18" FontAttributes="Bold" TextColor="#006c49"/>
+                        <Label Text="{Binding ActiveGoal.CurrentBalance, StringFormat='₱{0:N2}'}" FontSize="18" FontAttributes="Bold" TextColor="#006c49"/>
                     </VerticalStackLayout>
                     <VerticalStackLayout Grid.Column="1" HorizontalOptions="End">
                         <Label Text="Target Amount" FontSize="12" TextColor="#76777d" HorizontalOptions="End"/>
@@ -75,10 +75,10 @@
             <Label Text="History" FontSize="18" FontAttributes="Bold" TextColor="#000000" Margin="0,0,0,12"/>
             <CollectionView ItemsSource="{Binding ContributionHistory}" SelectionMode="None">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:GoalContribution">
+                    <DataTemplate x:DataType="models:FinancialTransaction">
                         <Border Stroke="#e4e2e4" StrokeThickness="1" StrokeShape="RoundRectangle 8" BackgroundColor="#ffffff" Margin="0,0,0,8" Padding="12">
                             <Grid ColumnDefinitions="*, Auto">
-                                <Label Grid.Column="0" Text="{Binding ContributionDate, StringFormat='{0:MMM dd, yyyy - hh:mm tt}'}" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
+                                <Label Grid.Column="0" Text="{Binding Timestamp, StringFormat='{0:MMM dd, yyyy - hh:mm tt}'}" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
                                 <Label Grid.Column="1" Text="{Binding Amount, StringFormat='+₱{0:N2}'}" FontSize="16" FontAttributes="Bold" TextColor="#006c49" VerticalOptions="Center"/>
                             </Grid>
                         </Border>

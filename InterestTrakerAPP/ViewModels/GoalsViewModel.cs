@@ -1,104 +1,109 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InterestTrakerAPP.Models;
 using InterestTrakerAPP.Services;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
 
-namespace InterestTrakerAPP.ViewModels;
-
-public partial class GoalsViewModel : ObservableObject
+namespace InterestTrakerAPP.ViewModels
 {
-    private readonly DatabaseService _databaseService;
-
-    [ObservableProperty] private bool _isRefreshing;
-    [ObservableProperty] private bool _isAddingGoal; // Toggles the creation form
-
-    // Form Inputs
-    [ObservableProperty] private string _newGoalTitle = string.Empty;
-    [ObservableProperty] private decimal _newGoalTargetAmount;
-    [ObservableProperty] private DateTime _newGoalDeadline = DateTime.Now.AddMonths(3);
-
-    public ObservableCollection<SavingsGoal> Goals { get; } = new();
-
-    public GoalsViewModel(DatabaseService databaseService)
+    public partial class GoalsViewModel : ObservableObject
     {
-        _databaseService = databaseService;
-    }
+        private readonly DatabaseService _databaseService;
 
-    [RelayCommand]
-    public async Task LoadGoalsAsync()
-    {
-        IsRefreshing = true;
-        var goals = await _databaseService.GetGoalsWithAnalyticsAsync();
+        [ObservableProperty] private bool _isRefreshing;
+        [ObservableProperty] private bool _isAddingGoal;
 
-        MainThread.BeginInvokeOnMainThread(() =>
+        // Form Inputs
+        [ObservableProperty] private string _newGoalTitle = string.Empty;
+        [ObservableProperty] private decimal _newGoalTargetAmount;
+        [ObservableProperty] private DateTime _newGoalTargetDate = DateTime.Now.AddMonths(3);
+
+        public ObservableCollection<SavingsGoal> Goals { get; } = new();
+
+        public GoalsViewModel(DatabaseService databaseService)
         {
-            Goals.Clear();
-            foreach (var goal in goals)
+            _databaseService = databaseService;
+        }
+
+        [RelayCommand]
+        public void LoadGoals()
+        {
+            IsRefreshing = true;
+            var goals = _databaseService.GetAllGoals();
+
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                Goals.Add(goal);
+                Goals.Clear();
+                foreach (var goal in goals)
+                {
+                    Goals.Add(goal);
+                }
+                IsRefreshing = false;
+            });
+        }
+
+        [RelayCommand]
+        private void ToggleAddGoalForm()
+        {
+            IsAddingGoal = !IsAddingGoal;
+        }
+
+        [RelayCommand]
+        private async Task SaveNewGoalAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewGoalTitle) || NewGoalTargetAmount <= 0)
+            {
+                await Shell.Current.DisplayAlert("Error", "Please enter a valid title and target amount.", "OK");
+                return;
             }
-            IsRefreshing = false;
-        });
-    }
 
-    [RelayCommand]
-    private void ToggleAddGoalForm()
-    {
-        IsAddingGoal = !IsAddingGoal;
-    }
+            var newGoal = new SavingsGoal
+            {
+                Title = NewGoalTitle,
+                TargetAmount = NewGoalTargetAmount,
+                TargetDate = NewGoalTargetDate, // Updated property
+                CurrentBalance = 0
+            };
 
-    [RelayCommand]
-    private async Task SaveNewGoalAsync()
-    {
-        if (string.IsNullOrWhiteSpace(NewGoalTitle) || NewGoalTargetAmount <= 0)
-        {
-            await Shell.Current.DisplayAlert("Error", "Please enter a valid title and target amount.", "OK");
-            return;
+            _databaseService.SaveGoal(newGoal);
+
+            NewGoalTitle = string.Empty;
+            NewGoalTargetAmount = 0;
+            NewGoalTargetDate = DateTime.Now.AddMonths(3);
+            IsAddingGoal = false;
+
+            LoadGoals();
         }
 
-        var newGoal = new SavingsGoal
+        [RelayCommand]
+        private async Task DeleteGoalAsync(SavingsGoal goal)
         {
-            Title = NewGoalTitle,
-            TargetAmount = NewGoalTargetAmount,
-            Deadline = NewGoalDeadline,
-            CreatedAt = DateTime.Now
-        };
+            if (goal == null) return;
 
-        await _databaseService.SaveGoalAsync(newGoal);
-
-        // Reset form and hide it
-        NewGoalTitle = string.Empty;
-        NewGoalTargetAmount = 0;
-        NewGoalDeadline = DateTime.Now.AddMonths(3);
-        IsAddingGoal = false;
-
-        await LoadGoalsAsync();
-    }
-
-    [RelayCommand]
-    private async Task DeleteGoalAsync(SavingsGoal goal)
-    {
-        if (goal == null) return;
-
-        bool confirm = await Shell.Current.DisplayAlert("Delete Goal", $"Erase '{goal.Title}' and all its tracking data?", "Delete", "Cancel");
-        if (confirm)
-        {
-            await _databaseService.DeleteGoalAsync(goal);
-            await LoadGoalsAsync();
+            bool confirm = await Shell.Current.DisplayAlert("Delete Goal", $"Erase '{goal.Title}' and all its tracking data?", "Delete", "Cancel");
+            if (confirm)
+            {
+                _databaseService.DeleteGoal(goal);
+                LoadGoals();
+            }
         }
-    }
 
-    [RelayCommand]
-    private async Task NavigateToDetailsAsync(SavingsGoal goal)
-    {
-        if (goal == null) return;
-
-        var navParams = new Dictionary<string, object>
+        [RelayCommand]
+        private async Task NavigateToDetailsAsync(SavingsGoal goal)
         {
-            { "GoalId", goal.Id }
-        };
+            if (goal == null) return;
 
-        await Shell.Current.GoToAsync("GoalDetailsPage", navParams);
+            var navParams = new Dictionary<string, object>
+            {
+                { "GoalId", goal.Id }
+            };
+
+            await Shell.Current.GoToAsync("GoalDetailsPage", navParams);
+        }
     }
 }

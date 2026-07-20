@@ -1,112 +1,113 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InterestTrakerAPP.Models;
 using InterestTrakerAPP.Services;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
 
-namespace InterestTrakerAPP.ViewModels;
-
-public partial class PortfolioViewModel : ObservableObject
+namespace InterestTrakerAPP.ViewModels
 {
-    private readonly MarketApiService _apiService;
-    private readonly DatabaseService _databaseService;
-
-    [ObservableProperty]
-    private bool _isRefreshing;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayTotalValue))]
-    private decimal _totalPortfolioValue;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(DisplayUnrealizedPnL))]
-    [NotifyPropertyChangedFor(nameof(IsOverallProfitable))]
-    private decimal _totalUnrealizedPnL;
-
-    public string DisplayTotalValue => $"₱{TotalPortfolioValue:N2}";
-    public string DisplayUnrealizedPnL => $"{(TotalUnrealizedPnL >= 0 ? "+" : "")}₱{TotalUnrealizedPnL:N2}";
-    public bool IsOverallProfitable => TotalUnrealizedPnL >= 0;
-
-    public ObservableCollection<PortfolioItem> Holdings { get; } = new();
-
-    public PortfolioViewModel(MarketApiService apiService, DatabaseService databaseService)
+    public partial class PortfolioViewModel : ObservableObject
     {
-        _apiService = apiService;
-        _databaseService = databaseService;
+        private readonly MarketApiService _apiService;
+        private readonly DatabaseService _databaseService;
 
-        _ = LoadPortfolioDataAsync();
-    }
+        [ObservableProperty]
+        private bool _isRefreshing;
 
-    [RelayCommand]
-    private async Task LoadPortfolioDataAsync()
-    {
-        IsRefreshing = true;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayTotalValue))]
+        private decimal _totalPortfolioValue;
 
-        var localHoldings = await _databaseService.GetHoldingsAsync();
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(DisplayUnrealizedPnL))]
+        [NotifyPropertyChangedFor(nameof(IsOverallProfitable))]
+        private decimal _totalUnrealizedPnL;
 
-        MainThread.BeginInvokeOnMainThread(() =>
+        public string DisplayTotalValue => $"₱{TotalPortfolioValue:N2}";
+        public string DisplayUnrealizedPnL => $"{(TotalUnrealizedPnL >= 0 ? "+" : "")}₱{TotalUnrealizedPnL:N2}";
+        public bool IsOverallProfitable => TotalUnrealizedPnL >= 0;
+
+        public ObservableCollection<PortfolioItem> Holdings { get; } = new();
+
+        public PortfolioViewModel(MarketApiService apiService, DatabaseService databaseService)
         {
-            Holdings.Clear();
-            foreach (var holding in localHoldings)
-            {
-                Holdings.Add(holding);
-            }
-        });
-
-        decimal phpRate = await _apiService.GetUsdToPhpRateAsync();
-        decimal tempTotalValue = 0;
-        decimal tempTotalPnL = 0;
-
-        foreach (var asset in Holdings)
-        {
-            var liveUsdPrice = await _apiService.GetLivePriceAsync(asset.Symbol);
-            if (liveUsdPrice.HasValue)
-            {
-                asset.LivePrice = liveUsdPrice.Value * phpRate;
-            }
-            else if (asset.LivePrice == 0)
-            {
-                asset.LivePrice = asset.AverageBuyPrice;
-            }
-
-            tempTotalValue += asset.TotalValue;
-            tempTotalPnL += asset.UnrealizedPnL;
+            _apiService = apiService;
+            _databaseService = databaseService;
+            _ = LoadPortfolioDataAsync();
         }
 
-        MainThread.BeginInvokeOnMainThread(() =>
+        [RelayCommand]
+        private async Task LoadPortfolioDataAsync()
         {
-            TotalPortfolioValue = tempTotalValue;
-            TotalUnrealizedPnL = tempTotalPnL;
-            IsRefreshing = false;
-        });
-    }
+            IsRefreshing = true;
 
-    [RelayCommand]
-    private async Task NavigateToTradeAsync(PortfolioItem asset)
-    {
-        if (asset == null) return;
+            var localHoldings = _databaseService.GetAllHoldings();
 
-        // Package the existing asset's data to send to the Trade Desk
-        var navigationParameters = new Dictionary<string, object>
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Holdings.Clear();
+                foreach (var holding in localHoldings)
+                {
+                    Holdings.Add(holding);
+                }
+            });
+
+            decimal phpRate = await _apiService.GetUsdToPhpRateAsync();
+            decimal tempTotalValue = 0;
+            decimal tempTotalPnL = 0;
+
+            foreach (var asset in Holdings)
+            {
+                var liveUsdPrice = await _apiService.GetLivePriceAsync(asset.Symbol);
+                if (liveUsdPrice.HasValue)
+                {
+                    asset.LivePrice = liveUsdPrice.Value * phpRate;
+                }
+                else if (asset.LivePrice == 0)
+                {
+                    asset.LivePrice = asset.AverageBuyPrice;
+                }
+
+                tempTotalValue += asset.TotalValue;
+                tempTotalPnL += asset.UnrealizedPnL;
+            }
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                TotalPortfolioValue = tempTotalValue;
+                TotalUnrealizedPnL = tempTotalPnL;
+                IsRefreshing = false;
+            });
+        }
+
+        [RelayCommand]
+        private async Task NavigateToTradeAsync(PortfolioItem asset)
         {
-            { "Symbol", asset.Symbol },
-            { "Name", asset.Name },
-            { "AssetClass", asset.AssetClass }
-        };
+            if (asset == null) return;
 
-        await Shell.Current.GoToAsync("AddHoldingPage", navigationParameters);
-    }
+            var navigationParameters = new Dictionary<string, object>
+            {
+                { "Symbol", asset.Symbol },
+                { "Name", asset.Name },
+                { "AssetClass", asset.AssetClass }
+            };
 
-    // Swipe-to-Delete functionality is kept here!
-    [RelayCommand]
-    private async Task DeleteHoldingAsync(PortfolioItem item)
-    {
-        if (item == null) return;
+            await Shell.Current.GoToAsync("AddHoldingPage", navigationParameters);
+        }
 
-        await _databaseService.DeleteHoldingAsync(item);
-        Holdings.Remove(item);
+        [RelayCommand]
+        private void DeleteHolding(PortfolioItem item)
+        {
+            if (item == null) return;
 
-        // Recalculate totals
-        _ = LoadPortfolioDataAsync();
+            _databaseService.DeleteHolding(item);
+            Holdings.Remove(item);
+
+            _ = LoadPortfolioDataAsync();
+        }
     }
 }

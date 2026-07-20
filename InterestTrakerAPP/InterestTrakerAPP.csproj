@@ -93,6 +93,9 @@
 	  <Compile Update="Views\LoginPage.xaml.cs">
 	    <DependentUpon>LoginPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Views\MasterLogPage.xaml.cs">
+	    <DependentUpon>MasterLogPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Views\PortfolioPage.xaml.cs">
 	    <DependentUpon>PortfolioPage.xaml</DependentUpon>
 	  </Compile>
@@ -118,6 +121,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\LoginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\MasterLogPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\PortfolioPage.xaml">

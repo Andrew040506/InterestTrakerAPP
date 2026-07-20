@@ -1,132 +1,126 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using System.Threading.Tasks;
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InterestTrakerAPP.Models;
 using InterestTrakerAPP.Services;
+using Microsoft.Maui.Controls;
 
-namespace InterestTrakerAPP.ViewModels;
-
-// These tell MAUI to automatically fill these properties when navigating from the Explorer
-[QueryProperty(nameof(Symbol), "Symbol")]
-[QueryProperty(nameof(Name), "Name")]
-[QueryProperty(nameof(AssetClass), "AssetClass")]
-public partial class AddHoldingViewModel : ObservableObject
+namespace InterestTrakerAPP.ViewModels
 {
-    private readonly DatabaseService _databaseService;
-    private readonly MarketApiService _apiService;
-
-    [ObservableProperty] private string _symbol = string.Empty;
-    [ObservableProperty] private string _name = string.Empty;
-    [ObservableProperty] private string _assetClass = "Stocks";
-    [ObservableProperty] private string _tradeType = "Buy";
-    [ObservableProperty] private decimal _units;
-    [ObservableProperty] private decimal _pricePerUnit;
-
-    public AddHoldingViewModel(DatabaseService databaseService, MarketApiService apiService)
+    [QueryProperty(nameof(Symbol), "Symbol")]
+    [QueryProperty(nameof(Name), "Name")]
+    [QueryProperty(nameof(AssetClass), "AssetClass")]
+    public partial class AddHoldingViewModel : ObservableObject
     {
-        _databaseService = databaseService;
-        _apiService = apiService;
-    }
+        private readonly DatabaseService _databaseService;
+        private readonly MarketApiService _apiService;
 
+        [ObservableProperty] private string _symbol = string.Empty;
+        [ObservableProperty] private string _name = string.Empty;
+        [ObservableProperty] private string _assetClass = "Stocks";
+        [ObservableProperty] private string _tradeType = "Buy";
+        [ObservableProperty] private decimal _units;
+        [ObservableProperty] private decimal _pricePerUnit;
 
-    [RelayCommand]
-    private async Task SubmitTradeAsync()
-    {
-        // 1. Basic empty-field validation
-        if (string.IsNullOrWhiteSpace(Symbol) || Units <= 0 || PricePerUnit <= 0)
+        public AddHoldingViewModel(DatabaseService databaseService, MarketApiService apiService)
         {
-            await Shell.Current.DisplayAlert("Missing Info", "Please ensure all fields have valid numbers and a symbol is entered.", "OK");
-            return;
+            _databaseService = databaseService;
+            _apiService = apiService;
         }
 
-        var cleanSymbol = Symbol.ToUpper().Trim();
-
-        // 2. AUTO-CORRECT ASSET CLASS
-        // If it has a crypto exchange prefix, force it to Crypto. Otherwise, it's a Stock.
-        if (cleanSymbol.StartsWith("BINANCE:") || cleanSymbol.StartsWith("COINBASE:") || cleanSymbol.StartsWith("KRAKEN:"))
+        [RelayCommand]
+        private async Task SubmitTradeAsync()
         {
-            AssetClass = "Crypto";
-        }
-        else
-        {
-            AssetClass = "Stocks";
-        }
-
-        // 3. THE API SAFETY NET
-        var livePriceCheck = await _apiService.GetLivePriceAsync(cleanSymbol);
-
-        if (livePriceCheck == null || livePriceCheck == 0)
-        {
-            await Shell.Current.DisplayAlert("Invalid Symbol",
-                $"The API could not find live data for '{cleanSymbol}'. Please check your spelling and formatting.",
-                "OK");
-            return;
-        }
-
-        // 4. Log the receipt in our Transaction Database
-        var transaction = new TradeTransaction
-        {
-            Symbol = cleanSymbol,
-            TradeType = TradeType,
-            Units = Units,
-            PricePerUnit = PricePerUnit,
-            TradeDate = DateTime.Now
-        };
-        await _databaseService.SaveTransactionAsync(transaction);
-
-        // 5. Do the Math for the Portfolio Dashboard
-        var allHoldings = await _databaseService.GetHoldingsAsync();
-        var existingAsset = allHoldings.FirstOrDefault(h => h.Symbol == cleanSymbol);
-
-        if (TradeType == "Buy")
-        {
-            if (existingAsset != null)
+            if (string.IsNullOrWhiteSpace(Symbol) || Units <= 0 || PricePerUnit <= 0)
             {
-                decimal totalCurrentCost = existingAsset.TotalUnits * existingAsset.AverageBuyPrice;
-                decimal totalNewCost = Units * PricePerUnit;
+                await Shell.Current.DisplayAlert("Missing Info", "Please ensure all fields have valid numbers.", "OK");
+                return;
+            }
 
-                existingAsset.TotalUnits += Units;
-                existingAsset.AverageBuyPrice = (totalCurrentCost + totalNewCost) / existingAsset.TotalUnits;
+            var cleanSymbol = Symbol.ToUpper().Trim();
 
-                await _databaseService.SaveHoldingAsync(existingAsset);
+            if (cleanSymbol.StartsWith("BINANCE:") || cleanSymbol.StartsWith("COINBASE:") || cleanSymbol.StartsWith("KRAKEN:"))
+            {
+                AssetClass = "Crypto";
             }
             else
             {
-                string finalName = string.IsNullOrWhiteSpace(Name) ? cleanSymbol : Name;
-
-                var newAsset = new PortfolioItem
-                {
-                    Symbol = cleanSymbol,
-                    Name = finalName,
-                    AssetClass = AssetClass, // This now uses the auto-corrected version!
-                    TotalUnits = Units,
-                    AverageBuyPrice = PricePerUnit
-                };
-                await _databaseService.SaveHoldingAsync(newAsset);
+                AssetClass = "Stocks";
             }
-        }
-        else if (TradeType == "Sell")
-        {
-            if (existingAsset != null)
-            {
-                existingAsset.TotalUnits -= Units;
 
-                if (existingAsset.TotalUnits <= 0)
+            var livePriceCheck = await _apiService.GetLivePriceAsync(cleanSymbol);
+
+            if (livePriceCheck == null || livePriceCheck == 0)
+            {
+                await Shell.Current.DisplayAlert("Invalid Symbol", $"API could not find data for '{cleanSymbol}'.", "OK");
+                return;
+            }
+
+            // Route the trade cost through the immutable Financial Transaction log!
+            _databaseService.ExecuteMoneyFlow(
+                sourceAccountId: 1, // Assumes main ledger is funding this trade
+                destAccountId: null,
+                targetGoalId: null,
+                amount: Units * PricePerUnit,
+                type: "PortfolioTrade",
+                description: $"{TradeType} {Units} of {cleanSymbol} @ ${PricePerUnit}"
+            );
+
+            var allHoldings = _databaseService.GetAllHoldings();
+            var existingAsset = allHoldings.FirstOrDefault(h => h.Symbol == cleanSymbol);
+
+            if (TradeType == "Buy")
+            {
+                if (existingAsset != null)
                 {
-                    await _databaseService.DeleteHoldingAsync(existingAsset);
+                    decimal totalCurrentCost = existingAsset.TotalUnits * existingAsset.AverageBuyPrice;
+                    decimal totalNewCost = Units * PricePerUnit;
+
+                    existingAsset.TotalUnits += Units;
+                    existingAsset.AverageBuyPrice = (totalCurrentCost + totalNewCost) / existingAsset.TotalUnits;
+
+                    _databaseService.SaveHolding(existingAsset);
                 }
                 else
                 {
-                    await _databaseService.SaveHoldingAsync(existingAsset);
+                    string finalName = string.IsNullOrWhiteSpace(Name) ? cleanSymbol : Name;
+
+                    var newAsset = new PortfolioItem
+                    {
+                        Symbol = cleanSymbol,
+                        Name = finalName,
+                        AssetClass = AssetClass,
+                        TotalUnits = Units,
+                        AverageBuyPrice = PricePerUnit
+                    };
+                    _databaseService.SaveHolding(newAsset);
                 }
             }
-            else
+            else if (TradeType == "Sell")
             {
-                await Shell.Current.DisplayAlert("Error", $"You do not own any {cleanSymbol} to sell.", "OK");
-                return;
-            }
-        }
+                if (existingAsset != null)
+                {
+                    existingAsset.TotalUnits -= Units;
 
-        // 6. Return to the Dashboard
-        await Shell.Current.GoToAsync("..");
+                    if (existingAsset.TotalUnits <= 0)
+                    {
+                        _databaseService.DeleteHolding(existingAsset);
+                    }
+                    else
+                    {
+                        _databaseService.SaveHolding(existingAsset);
+                    }
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Error", $"You do not own any {cleanSymbol} to sell.", "OK");
+                    return;
+                }
+            }
+
+            await Shell.Current.GoToAsync("..");
+        }
     }
 }
