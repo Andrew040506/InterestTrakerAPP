@@ -12,29 +12,30 @@ namespace InterestTrakerAPP.Services
 
         public DatabaseService()
         {
-            // --- TEMPORARY NUKE CODE ---
-            /*
-            var databasePath = Path.Combine(FileSystem.AppDataDirectory, "InterestTracker.db");
-            if (File.Exists(databasePath))
-                File.Delete(databasePath);
-            */
-            // ---------------------------
-
-            Init();
+            // We leave the constructor empty. 
+            // The database connection will ONLY open when a user successfully logs in.
         }
 
-        private void Init()
+        // --- NEW: TENANT ISOLATION ENGINE ---
+        public void InitializeForUser(string username)
         {
-            if (_db != null) return;
+            // If another user was logged in, close their vault first
+            if (_db != null)
+            {
+                _db.Close();
+                _db = null;
+            }
 
-            var databasePath = Path.Combine(FileSystem.AppDataDirectory, "InterestTracker.db");
+            // Create a unique database file for this specific user
+            string databaseName = $"InterestTracker_{username}.db";
+            var databasePath = Path.Combine(FileSystem.AppDataDirectory, databaseName);
+
             _db = new SQLiteConnection(databasePath);
 
-            // Core financial tables
+            // Generate the core financial tables exclusively inside this user's file
             _db.CreateTable<LedgerAccount>();
             _db.CreateTable<SavingsGoal>();
             _db.CreateTable<FinancialTransaction>();
-
             _db.CreateTable<AssetQuote>();
             _db.CreateTable<PortfolioItem>();
         }
@@ -213,7 +214,6 @@ namespace InterestTrakerAPP.Services
 
         public void DeleteHolding(object holding) => _db.Delete(holding);
 
-        // --- ENTITY CREATION (Mutable Actions) ---
         // --- ENTITY CREATION & UPDATING (Mutable Actions) ---
 
         public void SaveAccount(LedgerAccount account)

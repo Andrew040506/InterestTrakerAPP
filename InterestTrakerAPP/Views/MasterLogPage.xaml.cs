@@ -5,14 +5,15 @@ namespace InterestTrakerAPP.Views
 {
     public partial class MasterLogPage : ContentPage
     {
-        private DatabaseService _dbService;
+        private readonly DatabaseService _dbService;
 
-        public MasterLogPage()
+        // NEW: Ask for the DatabaseService in the constructor!
+        public MasterLogPage(DatabaseService dbService)
         {
             InitializeComponent();
 
-            // Initialize the database connection
-            _dbService = new DatabaseService();
+            // Store the injected, unlocked singleton
+            _dbService = dbService;
         }
 
         protected override void OnAppearing()

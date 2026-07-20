@@ -1,29 +1,49 @@
 using Microsoft.Maui.Controls;
 using System;
+using InterestTrakerAPP.Services;
 
 namespace InterestTrakerAPP.Views
 {
     public partial class LoginPage : ContentPage
     {
-        // Track whether the user is logging in or registering
         private bool _isLoginMode = true;
+        private readonly AuthService _authService;
+        private readonly DatabaseService _databaseService;
 
-        public LoginPage()
+        // Inject the services through the constructor
+        public LoginPage(AuthService authService, DatabaseService databaseService)
         {
             InitializeComponent();
+            _authService = authService;
+            _databaseService = databaseService;
         }
 
-        private void OnMainActionClicked(object sender, EventArgs e)
+        private async void OnMainActionClicked(object sender, EventArgs e)
         {
-            string username = UsernameEntry.Text;
+            string username = UsernameEntry.Text?.Trim();
             string password = PasswordEntry.Text;
+
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                await DisplayAlert("Error", "Please fill in all fields.", "OK");
+                return;
+            }
 
             if (_isLoginMode)
             {
-                // TODO: Query your local SQLite database to verify the user
+                // 1. Check Auth.db
+                if (_authService.Login(username, password))
+                {
+                    // 2. Success! Point the app to this specific user's file
+                    _databaseService.InitializeForUser(username);
 
-                // For now, bypass the check and launch the app
-                Application.Current.MainPage = new AppShell();
+                    // 3. Let them into the vault
+                    Application.Current.MainPage = new AppShell();
+                }
+                else
+                {
+                    await DisplayAlert("Access Denied", "Invalid username or password.", "OK");
+                }
             }
             else
             {
@@ -31,23 +51,32 @@ namespace InterestTrakerAPP.Views
 
                 if (password != confirmPassword)
                 {
-                    DisplayAlert("Error", "Passwords do not match.", "OK");
+                    await DisplayAlert("Error", "Passwords do not match.", "OK");
                     return;
                 }
 
-                // TODO: Save the new user to your local SQLite database
+                // 1. Try to save to Auth.db
+                if (_authService.Register(username, password))
+                {
+                    // 2. Success! Immediately log them in and build their isolated file
+                    _databaseService.InitializeForUser(username);
+                    await DisplayAlert("Success", "Account created and secured.", "OK");
 
-                // For now, bypass the save and launch the app
-                Application.Current.MainPage = new AppShell();
+                    // 3. Let them into the vault
+                    Application.Current.MainPage = new AppShell();
+                }
+                else
+                {
+                    await DisplayAlert("Error", "Username already exists.", "OK");
+                }
             }
         }
 
         private void OnToggleModeClicked(object sender, EventArgs e)
         {
-            // Flip the mode
+            // ... (keep your existing toggle logic exactly as is)
             _isLoginMode = !_isLoginMode;
 
-            // Update the UI based on the current mode
             if (_isLoginMode)
             {
                 HeaderLabel.Text = "Welcome Back";

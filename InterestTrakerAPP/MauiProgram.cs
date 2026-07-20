@@ -48,6 +48,11 @@ public static class MauiProgram
 
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<LoginPage>();
+       
+        builder.Services.AddSingleton<Services.AuthService>();
+        builder.Services.AddSingleton<Services.DatabaseService>();
+
+        builder.Services.AddTransient<Views.LoginPage>();
 
         return builder.Build();
     }

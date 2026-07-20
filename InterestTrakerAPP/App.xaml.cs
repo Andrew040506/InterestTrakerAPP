@@ -1,17 +1,17 @@
-﻿using InterestTrakerAPP.Views;
+﻿using Microsoft.Maui.Controls;
+using InterestTrakerAPP.Views;
 
 namespace InterestTrakerAPP
 {
     public partial class App : Application
     {
-        public App()
+        // We inject the LoginPage directly into the App constructor
+        public App(LoginPage loginPage)
         {
             InitializeComponent();
-        }
 
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new LoginPage());
+            // Let MAUI assign the fully constructed page (with all its services) to the MainPage
+            MainPage = loginPage;
         }
     }
 }
