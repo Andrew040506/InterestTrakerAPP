@@ -87,6 +87,10 @@
                                                 <Label Text="{Binding Symbol}" FontSize="10" TextColor="#45464d" FontAttributes="Bold"/>
                                             </Border>
                                             <Label Text="{Binding AssetClass}" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
+
+                                            <!-- ADDED: Clean Dot Separator and Platform Visual Badge -->
+                                            <Label Text="•" FontSize="12" TextColor="#76777d" VerticalOptions="Center"/>
+                                            <Label Text="{Binding Platform}" FontSize="12" TextColor="#76777d" FontAttributes="Bold" VerticalOptions="Center"/>
                                         </HorizontalStackLayout>
                                         <Label Text="{Binding DisplayHoldings}" FontSize="12" TextColor="#45464d" Margin="0,4,0,0"/>
                                         <Label Text="{Binding DisplayTotalValue}" FontSize="14" FontAttributes="Bold" TextColor="#000000"/>

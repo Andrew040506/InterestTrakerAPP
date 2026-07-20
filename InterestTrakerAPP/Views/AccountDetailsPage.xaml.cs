@@ -15,13 +15,13 @@ public partial class AccountDetailsPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        base.OnAppearing();
+        base.OnNavigatedTo(args);
 
-        // Automatically fire the retrieval command when the user opens the page.
-        // This forces SQLite to refresh records and update the active balance text blocks.
-        if (_viewModel.LoadDataCommand.CanExecute(null))
+        // We bypass the "CanExecute" check here. We are aggressively 
+        // demanding that the UI refreshes no matter what.
+        if (_viewModel != null)
         {
             _viewModel.LoadDataCommand.Execute(null);
         }

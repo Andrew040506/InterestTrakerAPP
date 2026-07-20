@@ -18,6 +18,25 @@
                 </Border.Shadow>
 
                 <VerticalStackLayout Spacing="16">
+                    <!-- NEW: Select which Ledger Account funds this trade -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Funding Account" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                        <Picker ItemsSource="{Binding LedgerAccounts}" 
+                                ItemDisplayBinding="{Binding AccountName}" 
+                                SelectedItem="{Binding SelectedAccount}" 
+                                Title="Select Account..."
+                                TextColor="#000000" 
+                                BackgroundColor="#f6f3f5"/>
+                    </VerticalStackLayout>
+                    <!-- NEW: Select which Platform/Broker holds this asset -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Platform / Broker" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>
+                        <Picker ItemsSource="{Binding AvailablePlatforms}" 
+                                SelectedItem="{Binding SelectedPlatform}" 
+                                Title="Select Platform..."
+                                TextColor="#000000" 
+                                BackgroundColor="#f6f3f5"/> 
+                    </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Order Action" FontSize="12" TextColor="#76777d" FontAttributes="Bold"/>

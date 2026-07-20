@@ -12,6 +12,14 @@ namespace InterestTrakerAPP.Services
 
         public DatabaseService()
         {
+            // --- TEMPORARY NUKE CODE ---
+            /*
+            var databasePath = Path.Combine(FileSystem.AppDataDirectory, "InterestTracker.db");
+            if (File.Exists(databasePath))
+                File.Delete(databasePath);
+            */
+            // ---------------------------
+
             Init();
         }
 
@@ -45,6 +53,84 @@ namespace InterestTrakerAPP.Services
             }
         }
 
+        public void ExecutePortfolioTrade(int accountId, string symbol, string name, string assetClass, decimal units, decimal pricePerUnit, string tradeType, string platform)
+        {
+            _db.RunInTransaction(() =>
+            {
+                decimal totalTradeValue = units * pricePerUnit;
+                string originAccountName = "Cash on Hand"; // Default for external funds
+
+                // NEW: Set the correct ledger flow! Buying assets is an Outflow of cash. Selling is an Inflow.
+                string ledgerFlow = tradeType == "Buy" ? "Outflow" : "Inflow";
+
+                // 1. Process the Cash flow (ONLY if a real ledger account was selected)
+                if (accountId != 0)
+                {
+                    var account = _db.Find<LedgerAccount>(accountId);
+                    if (account != null)
+                    {
+                        if (tradeType == "Buy")
+                        {
+                            account.Balance -= totalTradeValue; // Money leaves account
+                        }
+                        else if (tradeType == "Sell")
+                        {
+                            account.Balance += totalTradeValue; // Money enters account
+                        }
+                        _db.Update(account);
+                        originAccountName = account.AccountName; // Override with actual account name
+                    }
+                }
+
+                // 2. Process the Asset in the Portfolio
+                // CHANGE 1: We now query the database for BOTH the Symbol AND the Platform
+                var existingHolding = _db.Table<PortfolioItem>().FirstOrDefault(p => p.Symbol == symbol && p.Platform == platform);
+
+                if (existingHolding != null)
+                {
+                    if (tradeType == "Buy")
+                    {
+                        // Calculate new average buy price
+                        decimal totalExistingValue = existingHolding.TotalUnits * existingHolding.AverageBuyPrice;
+                        decimal newTotalValue = totalExistingValue + totalTradeValue;
+                        existingHolding.TotalUnits += units;
+                        existingHolding.AverageBuyPrice = newTotalValue / existingHolding.TotalUnits;
+                    }
+                    else if (tradeType == "Sell")
+                    {
+                        existingHolding.TotalUnits -= units;
+                        // Average buy price stays the same on a sell
+                    }
+                    _db.Update(existingHolding);
+                }
+                else if (tradeType == "Buy")
+                {
+                    // Brand new asset
+                    var newHolding = new PortfolioItem
+                    {
+                        Symbol = symbol,
+                        Name = name,
+                        AssetClass = assetClass,
+                        Platform = platform, // CHANGE 2: We save the new platform string into the database row
+                        TotalUnits = units,
+                        AverageBuyPrice = pricePerUnit
+                    };
+                    _db.Insert(newHolding);
+                }
+
+                // 3. Log the Immutable Audit Trail
+                var auditLog = new FinancialTransaction
+                {
+                    TransactionType = ledgerFlow,
+                    Amount = totalTradeValue,
+                    Timestamp = DateTime.UtcNow,
+                    Description = $"{tradeType} {units} {symbol} @ ₱{pricePerUnit} on {platform}", // Optional bonus: added platform to the audit log description
+                    SourceAccountId = accountId == 0 ? null : accountId,
+                    OriginAccount = originAccountName
+                };
+                _db.Insert(auditLog);
+            });
+        }
         public void ExecuteMoneyFlow(int sourceAccountId, int? destAccountId, int? targetGoalId, decimal amount, string type, string description)
         {
             _db.RunInTransaction(() =>

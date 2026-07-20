@@ -14,11 +14,13 @@ public partial class LedgerPage : ContentPage
         BindingContext = _viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override void OnNavigatedTo(NavigatedToEventArgs args)
     {
-        base.OnAppearing();
+        base.OnNavigatedTo(args);
 
-        if (_viewModel.LoadAccountsCommand.CanExecute(null))
+        // Aggressively force the page to refresh the total balances and account list
+        // every time this screen becomes active, even when navigating backward.
+        if (_viewModel != null)
         {
             _viewModel.LoadAccountsCommand.Execute(null);
         }

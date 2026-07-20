@@ -31,7 +31,7 @@ namespace InterestTrakerAPP.ViewModels
         }
 
         [RelayCommand]
-        private void LoadAccounts()
+        public void LoadAccounts()
         {
             IsRefreshing = true;
 

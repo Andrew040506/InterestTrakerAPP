@@ -9,6 +9,7 @@ namespace InterestTrakerAPP.Models
         public int Id { get; set; }
 
         public string TransactionType { get; set; }
+        public string OriginAccount { get; set; }
         public decimal Amount { get; set; }
         public DateTime Timestamp { get; set; }
         public string Description { get; set; }

@@ -1,21 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using SQLite; // ADDED: SQLite namespace
+using SQLite;
 
 namespace InterestTrakerAPP.Models;
 
 public partial class PortfolioItem : ObservableObject
 {
-    // ADDED: The unique ID for the database
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
     public string Symbol { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+
+    // ADDED: Tracks the brokerage or exchange platform hosting the asset
+    public string Platform { get; set; } = string.Empty;
+
     public string AssetClass { get; set; } = string.Empty;
     public decimal TotalUnits { get; set; }
     public decimal AverageBuyPrice { get; set; }
 
-    // ADDED: [Ignore] tells SQLite NOT to save these live API values to the local file
     [ObservableProperty]
     [property: Ignore]
     [NotifyPropertyChangedFor(nameof(TotalValue))]
